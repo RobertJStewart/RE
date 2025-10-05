@@ -1,5 +1,51 @@
 # RE Market Tool - Workflow Diagram
 
+## 🔄 Enhanced Data Ingestion Workflow
+
+```mermaid
+graph TB
+    %% Enhanced Data Ingestion Flow
+    A[Start Ingestion] --> B{Master Copy Exists?}
+    
+    %% First Run Path
+    B -->|No| C[First Run Mode]
+    C --> D[Download Data]
+    D --> E[Validate Data]
+    E --> F[Create Master Copy]
+    F --> G[Clean Data]
+    G --> H[Continue Pipeline]
+    
+    %% Subsequent Run Path
+    B -->|Yes| I[Subsequent Run Mode]
+    I --> J[Download New Data]
+    J --> K[Load Master Copy]
+    K --> L[Compare Data Continuity]
+    L --> M{Recent Data Match?}
+    
+    %% Continuity Validation
+    M -->|Yes| N[Update Master Copy]
+    M -->|No| O[Data Discontinuity Error]
+    O --> P[Quit Pipeline]
+    P --> Q[Future Development Goal]
+    
+    %% Success Path
+    N --> R[Clean Data]
+    R --> S[Continue Pipeline]
+    
+    %% Styling - Optimized for dark backgrounds
+    classDef entry fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#ffffff
+    classDef process fill:#065f46,stroke:#10b981,stroke-width:2px,color:#ffffff
+    classDef decision fill:#7c2d12,stroke:#f97316,stroke-width:2px,color:#ffffff
+    classDef error fill:#7f1d1d,stroke:#ef4444,stroke-width:2px,color:#ffffff
+    classDef success fill:#14532d,stroke:#22c55e,stroke-width:2px,color:#ffffff
+    
+    class A entry
+    class B,M decision
+    class C,D,E,F,G,I,J,K,L,N,R process
+    class O,P,Q error
+    class H,S success
+```
+
 ## 🔄 Complete System Workflow
 
 ```mermaid
@@ -10,12 +56,16 @@ graph TB
     A3[ZIP Code Coordinates<br/>🗺️ Geocoding API] --> B
     
     %% Data Ingestion Details
-    B --> B1[Data Validation<br/>🔍 Pandas/NumPy]
-    B1 --> B2[Data Cleaning<br/>🧹 Custom Scripts]
-    B2 --> B3[Coordinate Matching<br/>📍 H3 Geospatial]
+    B --> B1[Master Copy Check<br/>💾 First Run Detection]
+    B1 --> B2[Data Download<br/>📥 Zillow API/CSV]
+    B2 --> B3[Data Validation<br/>🔍 Pandas/NumPy]
+    B3 --> B4[Data Continuity Check<br/>🔄 Master Copy Comparison]
+    B4 --> B5[Data Cleaning<br/>🧹 Custom Scripts]
+    B5 --> B6[Master Copy Update<br/>💾 Save with Metadata]
+    B6 --> B7[Coordinate Matching<br/>📍 H3 Geospatial]
     
     %% Backend Processing Pipeline
-    B3 --> C[Geographic Aggregation<br/>🗺️ H3 + Custom Logic]
+    B7 --> C[Geographic Aggregation<br/>🗺️ H3 + Custom Logic]
     C --> D[Statistical Calculation<br/>📈 Pandas + NumPy]
     D --> E[Static File Generation<br/>📁 JSON/GeoJSON Export]
     
