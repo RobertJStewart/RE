@@ -1,0 +1,124 @@
+# RE Market Tool - Git Ignore File
+# =================================
+
+# Virtual Environment
+venv/
+env/
+.venv/
+.env/
+myenv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific
+backend/data/raw/*.csv
+backend/data/processed/*.csv
+backend/data/coordinates/*.json
+backend/aggregations/*/
+backend/statistics/*.json
+backend/logs/*.log
+test_data/
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Data files (keep structure, ignore content)
+backend/data/raw/
+!backend/data/raw/.gitkeep
+backend/data/processed/
+!backend/data/processed/.gitkeep
+backend/data/coordinates/
+!backend/data/coordinates/.gitkeep
+backend/aggregations/regions/
+!backend/aggregations/regions/.gitkeep
+backend/aggregations/state_regions/
+!backend/aggregations/state_regions/.gitkeep
+backend/aggregations/states/
+!backend/aggregations/states/.gitkeep
+backend/aggregations/zipcodes/
+!backend/aggregations/zipcodes/.gitkeep
+backend/statistics/
+!backend/statistics/.gitkeep
+backend/logs/
+!backend/logs/.gitkeep
