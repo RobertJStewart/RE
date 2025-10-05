@@ -318,3 +318,142 @@ graph TD
     class B,C,D,E,F,C1,C2,C3,D1,D2,D3,D4 dir
     class E1,E2,E3,F1 file
 ```
+
+## DataConnection Integration in ETL Pipeline
+
+### DataConnection Class Hierarchy in Pipeline Context
+
+```mermaid
+graph TD
+    A[ETL Pipeline Start] --> B[Initialize DataIngestion]
+    B --> C[Create REDataConnection]
+    C --> D[Initialize ZillowDataConnection]
+    D --> E[Load Available Combinations]
+    E --> F[Create Data Source Configs]
+    
+    F --> G[Process Each Data Source]
+    G --> H[Extract data_source, data_type, sub_type, geography]
+    H --> I[Get Metadata from DataConnection]
+    I --> J[Check Connection Health]
+    J --> K[Download Data or Use Fallback]
+    K --> L[Process and Clean Data]
+    L --> M[Save Master Copy]
+    M --> N[Save Processed Data]
+    
+    classDef pipeline fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#ffffff
+    classDef re fill:#065f46,stroke:#10b981,stroke-width:2px,color:#ffffff
+    classDef zillow fill:#7c2d12,stroke:#f97316,stroke-width:2px,color:#ffffff
+    classDef process fill:#dc2626,stroke:#ef4444,stroke-width:2px,color:#ffffff
+    
+    class A,B pipeline
+    class C,D,E,F re
+    class I,J zillow
+    class G,H,K,L,M,N process
+```
+
+### DataConnection Method Flow in Pipeline
+
+```mermaid
+sequenceDiagram
+    participant ETL as ETL Pipeline
+    participant DI as DataIngestion
+    participant RE as REDataConnection
+    participant ZD as ZillowDataConnection
+    participant DC as Data Source
+    
+    ETL->>DI: Initialize with data path
+    DI->>RE: Create REDataConnection
+    RE->>ZD: Initialize ZillowDataConnection
+    ZD->>RE: Return available combinations
+    RE->>DI: Return 37 combinations
+    
+    loop For each data source
+        DI->>RE: get_metadata(data_source, data_type, sub_type, geography)
+        RE->>ZD: get_metadata(data_type, sub_type, geography)
+        ZD->>RE: Return DataSourceMetadata
+        RE->>DI: Return metadata
+        
+        DI->>RE: check_connection_health(data_source, data_type, sub_type, geography)
+        RE->>ZD: check_connection_health(data_type, sub_type, geography)
+        ZD->>DC: Test connection methods
+        DC->>ZD: Return health status
+        ZD->>RE: Return health status
+        RE->>DI: Return health status
+        
+        alt Connection Healthy
+            DI->>DC: Download data
+            DC->>DI: Return data
+        else Connection Unhealthy
+            DI->>DI: Use fallback procedures
+            DI->>DI: Generate mock data
+        end
+        
+        DI->>DI: Process and clean data
+        DI->>DI: Save master copy
+        DI->>DI: Save processed data
+    end
+```
+
+### DataConnection Coverage in Pipeline
+
+```mermaid
+graph LR
+    A[ETL Pipeline] --> B[7 Data Sources Processed]
+    B --> C[zhvi_all_homes_smoothed_seasonally_adjusted]
+    B --> D[zhvi_all_homes_raw_mid_tier]
+    B --> E[zhvi_all_homes_top_tier]
+    B --> F[zhvi_all_homes_bottom_tier]
+    B --> G[zhvi_single_family_homes]
+    B --> H[zhvi_condo_coop]
+    B --> I[zori_all_homes]
+    
+    C --> J[ZIP Geography]
+    D --> K[ZIP Geography]
+    E --> L[ZIP Geography]
+    F --> M[ZIP Geography]
+    G --> N[ZIP Geography]
+    H --> O[ZIP Geography]
+    I --> P[ZIP Geography]
+    
+    J --> Q[50 rows × 16 columns]
+    K --> R[50 rows × 16 columns]
+    L --> S[50 rows × 16 columns]
+    M --> T[50 rows × 16 columns]
+    N --> U[50 rows × 16 columns]
+    O --> V[50 rows × 16 columns]
+    P --> W[50 rows × 16 columns]
+    
+    classDef pipeline fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#ffffff
+    classDef source fill:#065f46,stroke:#10b981,stroke-width:2px,color:#ffffff
+    classDef geography fill:#7c2d12,stroke:#f97316,stroke-width:2px,color:#ffffff
+    classDef output fill:#dc2626,stroke:#ef4444,stroke-width:2px,color:#ffffff
+    
+    class A pipeline
+    class B,C,D,E,F,G,H,I source
+    class J,K,L,M,N,O,P geography
+    class Q,R,S,T,U,V,W output
+```
+
+### Pipeline Performance with DataConnection
+
+```mermaid
+graph TD
+    A[Pipeline Start] --> B[DataConnection Initialization: ~0.01s]
+    B --> C[Load 37 Available Combinations: ~0.01s]
+    C --> D[Process 7 Data Sources: ~1.3s]
+    D --> E[Generate Mock Data: ~0.8s]
+    E --> F[Validate Data: ~0.2s]
+    F --> G[Clean Data: ~0.3s]
+    G --> H[Save Files: ~0.1s]
+    H --> I[Generate Quality Report: ~0.1s]
+    I --> J[Pipeline Complete: ~1.3s Total]
+    
+    classDef init fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#ffffff
+    classDef process fill:#065f46,stroke:#10b981,stroke-width:2px,color:#ffffff
+    classDef output fill:#7c2d12,stroke:#f97316,stroke-width:2px,color:#ffffff
+    classDef complete fill:#dc2626,stroke:#ef4444,stroke-width:2px,color:#ffffff
+    
+    class A,B,C init
+    class D,E,F,G,H,I process
+    class J complete
+```

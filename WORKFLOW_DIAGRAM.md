@@ -353,3 +353,152 @@ graph LR
     class C,D cache
     class E,F,G,H ui
 ```
+
+## DataConnection Class Architecture
+
+### Three-Level Hierarchy Structure
+
+```mermaid
+graph TD
+    A[RE Data Connection] --> B[Zillow Data Connection]
+    A --> C[Future: Redfin Data Connection]
+    A --> D[Future: CoreLogic Data Connection]
+    
+    B --> E[ZHVI Data Type]
+    B --> F[ZORI Data Type]
+    
+    E --> G[All Homes Smoothed Seasonally Adjusted]
+    E --> H[All Homes Raw Mid-Tier]
+    E --> I[All Homes Top-Tier]
+    E --> J[All Homes Bottom-Tier]
+    E --> K[Single-Family Homes]
+    E --> L[Condo/Co-op]
+    
+    F --> M[All Homes]
+    
+    G --> N[Metro Geography]
+    G --> O[State Geography]
+    G --> P[County Geography]
+    G --> Q[City Geography]
+    G --> R[ZIP Geography]
+    G --> S[Neighborhood Geography]
+    
+    H --> T[Metro Geography]
+    H --> U[State Geography]
+    H --> V[County Geography]
+    H --> W[City Geography]
+    H --> X[ZIP Geography]
+    H --> Y[Neighborhood Geography]
+    
+    I --> Z[Metro Geography]
+    I --> AA[State Geography]
+    I --> BB[County Geography]
+    I --> CC[City Geography]
+    I --> DD[ZIP Geography]
+    I --> EE[Neighborhood Geography]
+    
+    J --> FF[Metro Geography]
+    J --> GG[State Geography]
+    J --> HH[County Geography]
+    J --> II[City Geography]
+    J --> JJ[ZIP Geography]
+    J --> KK[Neighborhood Geography]
+    
+    K --> LL[Metro Geography]
+    K --> MM[State Geography]
+    K --> NN[County Geography]
+    K --> OO[City Geography]
+    K --> PP[ZIP Geography]
+    K --> QQ[Neighborhood Geography]
+    
+    L --> RR[Metro Geography]
+    L --> SS[State Geography]
+    L --> TT[County Geography]
+    L --> UU[City Geography]
+    L --> VV[ZIP Geography]
+    L --> WW[Neighborhood Geography]
+    
+    M --> XX[ZIP Geography]
+    
+    classDef re fill:#1976d2,stroke:#fff,stroke-width:2px,color:#fff
+    classDef zillow fill:#388e3c,stroke:#fff,stroke-width:2px,color:#fff
+    classDef future fill:#f57c00,stroke:#fff,stroke-width:2px,color:#fff
+    classDef datatype fill:#7b1fa2,stroke:#fff,stroke-width:2px,color:#fff
+    classDef subtype fill:#c2185b,stroke:#fff,stroke-width:2px,color:#fff
+    classDef geography fill:#d32f2f,stroke:#fff,stroke-width:2px,color:#fff
+    
+    class A re
+    class B zillow
+    class C,D future
+    class E,F datatype
+    class G,H,I,J,K,L,M subtype
+    class N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,BB,CC,DD,EE,FF,GG,HH,II,JJ,KK,LL,MM,NN,OO,PP,QQ,RR,SS,TT,UU,VV,WW,XX geography
+```
+
+### DataConnection Method Flow
+
+```mermaid
+graph TD
+    A[Data Ingestion Request] --> B[Get Data Source Config]
+    B --> C[Extract data_source, data_type, sub_type, geography]
+    C --> D[REDataConnection.get_metadata]
+    D --> E[ZillowDataConnection.get_metadata]
+    E --> F[Return DataSourceMetadata]
+    F --> G[Check Connection Health]
+    G --> H[REDataConnection.check_connection_health]
+    H --> I[ZillowDataConnection.check_connection_health]
+    I --> J[Test Connection Methods]
+    J --> K[Return Health Status]
+    K --> L[Download Data or Use Fallback]
+    L --> M[Process Data]
+    M --> N[Save Master Copy]
+    N --> O[Clean and Validate]
+    O --> P[Save Processed Data]
+    
+    classDef request fill:#1976d2,stroke:#fff,stroke-width:2px,color:#fff
+    classDef re fill:#388e3c,stroke:#fff,stroke-width:2px,color:#fff
+    classDef zillow fill:#7b1fa2,stroke:#fff,stroke-width:2px,color:#fff
+    classDef process fill:#f57c00,stroke:#fff,stroke-width:2px,color:#fff
+    classDef output fill:#d32f2f,stroke:#fff,stroke-width:2px,color:#fff
+    
+    class A request
+    class D,H re
+    class E,I zillow
+    class B,C,F,G,J,K,L,M,N,O process
+    class P output
+```
+
+### DataConnection Coverage Summary
+
+```mermaid
+pie title DataConnection Coverage by Data Type
+    "ZHVI All Homes Smoothed Seasonally Adjusted" : 6
+    "ZHVI All Homes Raw Mid-Tier" : 6
+    "ZHVI All Homes Top-Tier" : 6
+    "ZHVI All Homes Bottom-Tier" : 6
+    "ZHVI Single-Family Homes" : 6
+    "ZHVI Condo/Co-op" : 6
+    "ZORI All Homes" : 1
+```
+
+### Geography Coverage by Data Type
+
+```mermaid
+graph LR
+    A[ZHVI Data Types] --> B[Metro: 6 combinations]
+    A --> C[State: 6 combinations]
+    A --> D[County: 6 combinations]
+    A --> E[City: 6 combinations]
+    A --> F[ZIP: 6 combinations]
+    A --> G[Neighborhood: 6 combinations]
+    
+    H[ZORI Data Types] --> I[ZIP: 1 combination]
+    
+    classDef zhvi fill:#7b1fa2,stroke:#fff,stroke-width:2px,color:#fff
+    classDef zori fill:#c2185b,stroke:#fff,stroke-width:2px,color:#fff
+    classDef geography fill:#388e3c,stroke:#fff,stroke-width:2px,color:#fff
+    
+    class A zhvi
+    class H zori
+    class B,C,D,E,F,G,I geography
+```

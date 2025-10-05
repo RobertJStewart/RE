@@ -1,0 +1,18 @@
+{
+  "source_name": "Zillow",
+  "data_type": "zhvi",
+  "geography": "zip",
+  "critical_columns": [
+    "RegionID",
+    "RegionName",
+    "StateName",
+    "SizeRank"
+  ],
+  "unit": "USD",
+  "frequency": "Monthly",
+  "date_range": "2000-01-01 to present",
+  "processing_date": "2025-10-05T14:05:13.933960",
+  "data_source": "mock_data",
+  "total_rows": 50,
+  "total_columns": 16
+}

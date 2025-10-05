@@ -33,14 +33,30 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Import our pipeline modules
 from scripts.ingest import DataIngestion
 from scripts.aggregate import GeographicAggregation
-from scripts.calculate import StatisticalCalculation
+
+# Try to import statistical calculation module
+try:
+    from scripts.calculate import StatisticalCalculation
+    CALCULATION_AVAILABLE = True
+except ImportError as e:
+    print(f"\n⚠️  Warning: Could not import statistical calculation module: {e}")
+    response = input("Would you like to continue without the calculation step? (y/n): ").lower().strip()
+    if response in ['y', 'yes']:
+        print("✅ Continuing without calculation step...")
+        CALCULATION_AVAILABLE = False
+    else:
+        print("❌ Exiting due to missing calculation module")
+        sys.exit(1)
 
 # Configure logging
+log_dir = Path(__file__).parent.parent / "logs"
+log_dir.mkdir(exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('backend/logs/etl_pipeline.log'),
+        logging.FileHandler(log_dir / 'etl_pipeline.log'),
         logging.StreamHandler()
     ]
 )
@@ -76,7 +92,12 @@ class ETLPipeline:
         # Initialize pipeline components
         self.ingestion = DataIngestion(self.data_path)
         self.aggregation = GeographicAggregation(self.aggregations_path)
-        self.calculation = StatisticalCalculation(self.statistics_path)
+        
+        # Initialize calculation component if available
+        if CALCULATION_AVAILABLE:
+            self.calculation = StatisticalCalculation(self.statistics_path)
+        else:
+            self.calculation = None
         
         logger.info(f"ETL Pipeline initialized with base path: {self.base_path}")
     
@@ -124,11 +145,15 @@ class ETLPipeline:
             if not aggregation_result['success']:
                 raise Exception(f"Geographic aggregation failed: {aggregation_result['error']}")
             
-            # Step 3: Statistical Calculation
-            logger.info("📊 Step 3: Statistical Calculation")
-            calculation_result = self.calculation.run()
-            if not calculation_result['success']:
-                raise Exception(f"Statistical calculation failed: {calculation_result['error']}")
+            # Step 3: Statistical Calculation (if available)
+            if CALCULATION_AVAILABLE:
+                logger.info("📊 Step 3: Statistical Calculation")
+                calculation_result = self.calculation.run()
+                if not calculation_result['success']:
+                    raise Exception(f"Statistical calculation failed: {calculation_result['error']}")
+            else:
+                logger.info("📊 Step 3: Statistical Calculation (skipped - module not available)")
+                calculation_result = {'success': True, 'skipped': True}
             
             # Step 4: Generate metadata
             logger.info("📋 Step 4: Generate metadata")
@@ -167,6 +192,10 @@ class ETLPipeline:
     
     def run_calculation_only(self):
         """Run only the statistical calculation step."""
+        if not CALCULATION_AVAILABLE:
+            logger.error("❌ Statistical calculation module not available")
+            return {'success': False, 'error': 'Calculation module not available'}
+        
         logger.info("📊 Running statistical calculation only...")
         return self.calculation.run()
     

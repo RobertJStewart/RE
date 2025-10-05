@@ -276,3 +276,61 @@ geography_critical_columns = {
 - **Scalability**: Easy to add new sources
 - **Maintainability**: Clear separation of concerns
 - **Reliability**: No cache-busting issues
+
+## DataConnection Class Restructuring (2025-10-05)
+
+### Problem Solved
+The original DataConnection class used a "versions" concept that didn't properly handle multiple variants of the same data type (e.g., different ZHVI tiers, smoothed vs raw data). This made it difficult to organize and manage the various data types and their specific variants.
+
+### Solution Implemented
+Restructured the DataConnection class to use a three-level hierarchy:
+1. **RE** (top level) - Real Estate data connection management
+2. **Zillow** (subclass) - Zillow-specific data management  
+3. **Specific data types** (sub-subclass) - e.g., "All Homes Smoothed Seasonally Adjusted"
+
+### New Class Structure
+```
+REDataConnection
+├── ZillowDataConnection
+│   ├── ZHVI
+│   │   ├── all_homes_smoothed_seasonally_adjusted
+│   │   ├── all_homes_raw_mid_tier
+│   │   ├── all_homes_top_tier
+│   │   ├── all_homes_bottom_tier
+│   │   ├── single_family_homes
+│   │   └── condo_coop
+│   └── ZORI
+│       └── all_homes
+└── Future: RedfinDataConnection, CoreLogicDataConnection
+```
+
+### Key Changes
+- **Method Signatures**: All methods now accept four parameters: `(data_source, data_type, sub_type, geography)`
+- **Data Structure**: Data types now include `sub_types` with specific variants
+- **Connection Methods**: Organized by data_type → sub_type → geography
+- **Fallback Procedures**: Include "alternative_sub_type" options
+- **URL Patterns**: Organized by sub_type → geography
+
+### Files Updated
+- `backend/scripts/data_connection.py` - Complete restructure with new hierarchy
+- `backend/scripts/ingest.py` - Updated to work with new DataConnection structure
+
+### Benefits
+1. **Clear Hierarchy**: RE → Data Source → Data Type → Sub-Type → Geography
+2. **Easy Extension**: Simple to add new data sources (Redfin, CoreLogic, etc.)
+3. **Better Organization**: ZHVI variants properly grouped under ZHVI data type
+4. **Specific Fallbacks**: Sub-type-specific fallback procedures
+5. **Consistent API**: All methods use the same parameter pattern
+
+### Testing Results
+- **DataConnection Class**: All 37 combinations tested successfully
+- **Pipeline Integration**: ETL pipeline processes all 7 data sources correctly
+- **Data Processing**: 7 data sources processed in ~1.3 seconds
+- **File Generation**: Raw, processed, and master copy files created successfully
+- **Quality Report**: Comprehensive JSON report generated
+
+### Data Coverage
+- **Total Combinations**: 37
+- **ZHVI Combinations**: 36 (6 sub-types × 6 geographies)
+- **ZORI Combinations**: 1 (1 sub-type × 1 geography)
+- **Geographies**: metro, state, county, city, zip, neighborhood

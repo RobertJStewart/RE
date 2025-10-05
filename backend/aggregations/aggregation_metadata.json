@@ -1,0 +1,181 @@
+{
+  "timestamp": "2025-10-05T14:26:22.427056",
+  "data_source": "both",
+  "geography_hierarchy": {
+    "zip": {
+      "name": "ZIP Code",
+      "parent": "state",
+      "key_columns": [
+        "RegionID",
+        "RegionName",
+        "StateName",
+        "Metro",
+        "CountyName",
+        "SizeRank"
+      ]
+    },
+    "city": {
+      "name": "City",
+      "parent": "state",
+      "key_columns": [
+        "RegionID",
+        "RegionName",
+        "StateName",
+        "Metro",
+        "SizeRank"
+      ]
+    },
+    "county": {
+      "name": "County",
+      "parent": "state",
+      "key_columns": [
+        "RegionID",
+        "RegionName",
+        "StateName",
+        "SizeRank"
+      ]
+    },
+    "state": {
+      "name": "State",
+      "parent": "state_region",
+      "key_columns": [
+        "RegionID",
+        "RegionName",
+        "SizeRank"
+      ]
+    },
+    "state_region": {
+      "name": "State Region",
+      "parent": "region",
+      "key_columns": [
+        "RegionID",
+        "RegionName",
+        "SizeRank"
+      ]
+    },
+    "region": {
+      "name": "Region",
+      "parent": null,
+      "key_columns": [
+        "RegionID",
+        "RegionName",
+        "SizeRank"
+      ]
+    }
+  },
+  "state_region_mapping": {
+    "New England": [
+      "CT",
+      "ME",
+      "MA",
+      "NH",
+      "RI",
+      "VT"
+    ],
+    "Mid-Atlantic": [
+      "DE",
+      "MD",
+      "NJ",
+      "NY",
+      "PA"
+    ],
+    "South Atlantic": [
+      "FL",
+      "GA",
+      "NC",
+      "SC",
+      "VA",
+      "WV"
+    ],
+    "East South Central": [
+      "AL",
+      "KY",
+      "MS",
+      "TN"
+    ],
+    "West South Central": [
+      "AR",
+      "LA",
+      "OK",
+      "TX"
+    ],
+    "East North Central": [
+      "IL",
+      "IN",
+      "MI",
+      "OH",
+      "WI"
+    ],
+    "West North Central": [
+      "IA",
+      "KS",
+      "MN",
+      "MO",
+      "NE",
+      "ND",
+      "SD"
+    ],
+    "Mountain": [
+      "AZ",
+      "CO",
+      "ID",
+      "MT",
+      "NV",
+      "NM",
+      "UT",
+      "WY"
+    ],
+    "Pacific": [
+      "AK",
+      "CA",
+      "HI",
+      "OR",
+      "WA"
+    ]
+  },
+  "results": {
+    "calculated": {
+      "success": true,
+      "aggregation_mode": "hierarchical",
+      "geography_results": {
+        "zip": {
+          "success": false,
+          "error": "ZIP code data not found"
+        },
+        "state": {
+          "success": false,
+          "error": "ZIP code data not found"
+        },
+        "state_region": {
+          "success": false,
+          "error": "State data not found"
+        },
+        "region": {
+          "success": false,
+          "error": "State region data not found"
+        }
+      }
+    },
+    "provider": {
+      "success": true,
+      "provider_results": {
+        "zip": {
+          "success": false,
+          "error": "Provider data not found for zip"
+        },
+        "city": {
+          "success": false,
+          "error": "Provider data not found for city"
+        },
+        "county": {
+          "success": false,
+          "error": "Provider data not found for county"
+        },
+        "state": {
+          "success": false,
+          "error": "Provider data not found for state"
+        }
+      }
+    }
+  }
+}

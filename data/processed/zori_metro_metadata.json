@@ -1,0 +1,20 @@
+{
+  "source_name": "Zillow",
+  "data_type": "zori",
+  "geography": "metro",
+  "critical_columns": [
+    "RegionID",
+    "RegionName",
+    "StateName",
+    "Metro",
+    "CountyName",
+    "SizeRank"
+  ],
+  "unit": "USD per month",
+  "frequency": "Monthly",
+  "date_range": "2014-01-01 to present",
+  "processing_date": "2025-10-05T14:05:24.577552",
+  "data_source": "mock_data",
+  "total_rows": 50,
+  "total_columns": 18
+}
