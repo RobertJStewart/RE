@@ -2,6 +2,10 @@
 # RE Market Tool - Environment Setup Script
 # ===========================================
 # Complete environment setup for RE project
+#
+# NOTE: This script creates a virtual environment that should be excluded
+# from git commits. Ensure .gitignore includes 'venv/' to prevent
+# virtual environment files from being committed to the repository.
 
 set -e  # Exit on any error
 
