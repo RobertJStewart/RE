@@ -95,6 +95,7 @@ backend/aggregations/*/
 backend/statistics/*.json
 backend/logs/*.log
 test_data/
+backend/scripts/testing/
 *.log
 
 # Temporary files

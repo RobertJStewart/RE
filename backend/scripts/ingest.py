@@ -74,25 +74,49 @@ class DataIngestion:
         # Ensure directories exist
         self._ensure_directories()
         
+        # Geography-specific critical columns
+        self.geography_critical_columns = {
+            'metro': ['RegionID', 'RegionName', 'StateName', 'Metro', 'CountyName', 'SizeRank'],
+            'state': ['RegionID', 'RegionName', 'StateName', 'SizeRank'],
+            'county': ['RegionID', 'RegionName', 'StateName', 'CountyName', 'SizeRank'],
+            'city': ['RegionID', 'RegionName', 'StateName', 'CityName', 'SizeRank'],
+            'zip': ['RegionID', 'RegionName', 'StateName', 'SizeRank'],
+            'neighborhood': ['RegionID', 'RegionName', 'StateName', 'NeighborhoodName', 'CityName', 'SizeRank']
+        }
+        
         # Data source configurations
         self.data_sources = {
             'zhvi': {
                 'name': 'Zillow Home Value Index',
                 'url': 'https://files.zillowstatic.com/research/public_csvs/zhvi/Zip_Zhvi_AllHomes.csv',
                 'filename': 'zhvi.csv',
-                'required_columns': ['RegionID', 'RegionName', 'StateName', 'Metro', 'CountyName', 'SizeRank'],
                 'date_columns': []  # Will be populated dynamically
             },
             'zori': {
                 'name': 'Zillow Rent Index',
                 'url': 'https://files.zillowstatic.com/research/public_csvs/zori/Zip_ZORI_AllHomesPlusMultifamily.csv',
                 'filename': 'zori.csv',
-                'required_columns': ['RegionID', 'RegionName', 'StateName', 'Metro', 'CountyName', 'SizeRank'],
                 'date_columns': []  # Will be populated dynamically
             }
         }
         
         logger.info(f"Data ingestion initialized with data path: {self.data_path}")
+    
+    def _get_critical_columns(self, geography: str) -> List[str]:
+        """
+        Get critical columns for a specific geography level.
+        
+        Args:
+            geography (str): Geography level (metro, state, county, city, zip, neighborhood)
+            
+        Returns:
+            List[str]: List of critical columns for the geography level
+        """
+        if geography not in self.geography_critical_columns:
+            logger.warning(f"Unknown geography level: {geography}. Using default critical columns.")
+            return ['RegionID', 'RegionName', 'StateName', 'SizeRank']
+        
+        return self.geography_critical_columns[geography]
     
     def _ensure_directories(self):
         """Ensure all required directories exist."""
@@ -101,7 +125,7 @@ class DataIngestion:
             directory.mkdir(parents=True, exist_ok=True)
             logger.debug(f"Ensured directory exists: {directory}")
     
-    def run(self, data_sources: List[str] = None, validate_only: bool = False) -> Dict:
+    def run(self, data_sources: List[str] = None, validate_only: bool = False, geography: str = 'zip') -> Dict:
         """
         Run the complete data ingestion process.
         
@@ -127,8 +151,8 @@ class DataIngestion:
                     logger.warning(f"Unknown data source: {source}")
                     continue
                 
-                logger.info(f"📥 Processing data source: {source}")
-                source_result = self._process_data_source(source, validate_only)
+                logger.info(f"📥 Processing data source: {source} for {geography} geography")
+                source_result = self._process_data_source(source, validate_only, geography)
                 results[source] = source_result
             
             # Generate overall quality report
@@ -155,7 +179,7 @@ class DataIngestion:
                 'duration': str(datetime.now() - start_time)
             }
     
-    def _process_data_source(self, source: str, validate_only: bool = False) -> Dict:
+    def _process_data_source(self, source: str, validate_only: bool = False, geography: str = 'zip') -> Dict:
         """
         Process a single data source with master copy management.
         
@@ -324,16 +348,19 @@ class DataIngestion:
             # Load and validate the CSV
             df = pd.read_csv(raw_file)
             
+            # Get critical columns for this geography
+            critical_columns = self._get_critical_columns(geography)
+            
             # Check required columns
-            missing_columns = set(config['required_columns']) - set(df.columns)
+            missing_columns = set(critical_columns) - set(df.columns)
             if missing_columns:
                 return {
                     'success': False,
-                    'error': f"Missing required columns: {missing_columns}"
+                    'error': f"Missing required columns for {geography}: {missing_columns}"
                 }
             
             # Identify date columns (columns that look like dates)
-            date_columns = [col for col in df.columns if col not in config['required_columns']]
+            date_columns = [col for col in df.columns if col not in critical_columns]
             config['date_columns'] = date_columns
             
             # Basic data quality checks
@@ -387,8 +414,8 @@ class DataIngestion:
             completely_null_rows_removed = initial_rows - len(df)
             
             # Handle partial null values in critical columns
-            critical_columns = ['RegionID', 'RegionName', 'StateName']
-            for col in critical_columns:
+            critical_columns_for_cleaning = ['RegionID', 'RegionName', 'StateName']
+            for col in critical_columns_for_cleaning:
                 if col in df.columns:
                     before_count = len(df)
                     df = df.dropna(subset=[col])

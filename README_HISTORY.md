@@ -180,6 +180,39 @@ frontend/
 ### **Future Development Goal**
 *"Implement data reconciliation process for handling significant changes in recent historical data"*
 
+## 🔧 Enhanced Data Ingestion with Dynamic Critical Columns
+
+### **Problem Solved**
+The original ingestion script used hardcoded critical columns that didn't account for different geography levels having different required columns.
+
+### **Solution Implemented**
+- **Dynamic Critical Columns**: Geography-specific column validation
+- **Flexible Validation**: Each geography level validates against its specific required columns
+- **Proper Data Structure**: Mock data generation creates appropriate columns for each geography
+
+### **Geography-Specific Critical Columns**
+```python
+geography_critical_columns = {
+    'metro': ['RegionID', 'RegionName', 'StateName', 'Metro', 'CountyName', 'SizeRank'],
+    'state': ['RegionID', 'RegionName', 'StateName', 'SizeRank'],
+    'county': ['RegionID', 'RegionName', 'StateName', 'CountyName', 'SizeRank'],
+    'city': ['RegionID', 'RegionName', 'StateName', 'CityName', 'SizeRank'],
+    'zip': ['RegionID', 'RegionName', 'StateName', 'SizeRank'],
+    'neighborhood': ['RegionID', 'RegionName', 'StateName', 'NeighborhoodName', 'CityName', 'SizeRank']
+}
+```
+
+### **Files Updated**
+- ✅ `backend/scripts/ingest.py` - Main ingestion script with dynamic critical columns
+- ✅ `backend/scripts/testing/ingest_test.py` - Testing version with geography-specific validation
+- ✅ `.gitignore` - Added testing folder exclusion
+
+### **Benefits**
+- **Flexible Validation**: Each geography gets appropriate column validation
+- **Proper Data Structure**: Mock data matches real data structure per geography
+- **Scalable Design**: Easy to add new geography levels
+- **Error Prevention**: Clear error messages for missing geography-specific columns
+
 ## 🎯 Next Steps
 
 1. ✅ **Create Mermaid workflow diagram**

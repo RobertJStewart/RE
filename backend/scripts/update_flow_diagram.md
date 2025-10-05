@@ -10,27 +10,29 @@ graph TB
     %% First Run Path
     B -->|No| C[First Run Mode]
     C --> D[Download Data]
-    D --> E[Validate Data]
-    E --> F[Create Master Copy]
-    F --> G[Clean Data]
-    G --> H[Continue Pipeline]
+    D --> E[Get Geography-Specific Critical Columns]
+    E --> F[Validate Data Against Critical Columns]
+    F --> G[Create Master Copy]
+    G --> H[Clean Data]
+    H --> I[Continue Pipeline]
     
     %% Subsequent Run Path
-    B -->|Yes| I[Subsequent Run Mode]
-    I --> J[Download New Data]
-    J --> K[Load Master Copy]
-    K --> L[Compare Data Continuity]
-    L --> M{Recent Data Match?}
+    B -->|Yes| J[Subsequent Run Mode]
+    J --> K[Download New Data]
+    K --> L[Get Geography-Specific Critical Columns]
+    L --> M[Load Master Copy]
+    M --> N[Compare Data Continuity]
+    N --> O{Recent Data Match?}
     
     %% Continuity Validation
-    M -->|Yes| N[Update Master Copy]
-    M -->|No| O[Data Discontinuity Error]
-    O --> P[Quit Pipeline]
-    P --> Q[Future Development Goal]
+    O -->|Yes| P[Update Master Copy]
+    O -->|No| Q[Data Discontinuity Error]
+    Q --> R[Quit Pipeline]
+    R --> S[Future Development Goal]
     
     %% Success Path
-    N --> R[Clean Data]
-    R --> S[Continue Pipeline]
+    P --> T[Clean Data]
+    T --> U[Continue Pipeline]
     
     %% Styling - Optimized for dark backgrounds
     classDef entry fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#ffffff
@@ -40,10 +42,57 @@ graph TB
     classDef success fill:#14532d,stroke:#22c55e,stroke-width:2px,color:#ffffff
     
     class A entry
-    class B,M decision
-    class C,D,E,F,G,I,J,K,L,N,R process
-    class O,P,Q error
-    class H,S success
+    class B,O decision
+    class C,D,E,F,G,J,K,L,M,N,P,T process
+    class Q,R,S error
+    class I,U success
+```
+
+## 🗺️ Dynamic Critical Columns Validation
+
+```mermaid
+graph TB
+    %% Dynamic Critical Columns Flow
+    A[Start Data Validation] --> B[Get Geography Level]
+    B --> C{Geography Type?}
+    
+    %% Geography-Specific Paths
+    C -->|Metro| D[Metro Critical Columns:<br/>RegionID, RegionName, StateName,<br/>Metro, CountyName, SizeRank]
+    C -->|State| E[State Critical Columns:<br/>RegionID, RegionName, StateName, SizeRank]
+    C -->|County| F[County Critical Columns:<br/>RegionID, RegionName, StateName,<br/>CountyName, SizeRank]
+    C -->|City| G[City Critical Columns:<br/>RegionID, RegionName, StateName,<br/>CityName, SizeRank]
+    C -->|ZIP| H[ZIP Critical Columns:<br/>RegionID, RegionName, StateName, SizeRank]
+    C -->|Neighborhood| I[Neighborhood Critical Columns:<br/>RegionID, RegionName, StateName,<br/>NeighborhoodName, CityName, SizeRank]
+    
+    %% Validation Process
+    D --> J[Validate Against Critical Columns]
+    E --> J
+    F --> J
+    G --> J
+    H --> J
+    I --> J
+    
+    J --> K{All Critical Columns Present?}
+    K -->|Yes| L[Identify Date Columns]
+    K -->|No| M[Missing Columns Error]
+    
+    L --> N[Continue Data Processing]
+    M --> O[Quit with Error Message]
+    
+    %% Styling - Optimized for dark backgrounds
+    classDef entry fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#ffffff
+    classDef process fill:#065f46,stroke:#10b981,stroke-width:2px,color:#ffffff
+    classDef decision fill:#7c2d12,stroke:#f97316,stroke-width:2px,color:#ffffff
+    classDef error fill:#7f1d1d,stroke:#ef4444,stroke-width:2px,color:#ffffff
+    classDef success fill:#14532d,stroke:#22c55e,stroke-width:2px,color:#ffffff
+    classDef geography fill:#1e40af,stroke:#3b82f6,stroke-width:2px,color:#ffffff
+    
+    class A entry
+    class B,C,K decision
+    class D,E,F,G,H,I geography
+    class J,L,N process
+    class M,O error
+    class N success
 ```
 
 ## 🔄 ETL Pipeline Orchestrator Flow
