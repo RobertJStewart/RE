@@ -68,12 +68,12 @@ graph TB
     AA --> FF
     CC --> GG[Exit Code 1]
     
-    %% Styling
-    classDef entry fill:#e3f2fd
-    classDef process fill:#e8f5e8
-    classDef decision fill:#fff3e0
-    classDef error fill:#ffebee
-    classDef success fill:#e8f5e8
+    %% Styling - Optimized for dark backgrounds
+    classDef entry fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#ffffff
+    classDef process fill:#065f46,stroke:#10b981,stroke-width:2px,color:#ffffff
+    classDef decision fill:#7c2d12,stroke:#f97316,stroke-width:2px,color:#ffffff
+    classDef error fill:#7f1d1d,stroke:#ef4444,stroke-width:2px,color:#ffffff
+    classDef success fill:#14532d,stroke:#22c55e,stroke-width:2px,color:#ffffff
     
     class A entry
     class B,H,I,J,K,L,M,N decision
@@ -107,10 +107,10 @@ graph LR
     J --> L
     K --> L
     
-    %% Styling
-    classDef init fill:#e3f2fd
-    classDef path fill:#e8f5e8
-    classDef component fill:#fff3e0
+    %% Styling - Optimized for dark backgrounds
+    classDef init fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#ffffff
+    classDef path fill:#065f46,stroke:#10b981,stroke-width:2px,color:#ffffff
+    classDef component fill:#7c2d12,stroke:#f97316,stroke-width:2px,color:#ffffff
     
     class A init
     class B,C,D,E,F path
@@ -177,11 +177,11 @@ graph TD
     J --> K[Return Success Result]
     K --> L[Exit Code 0]
     
-    %% Styling
-    classDef process fill:#e3f2fd
-    classDef decision fill:#fff3e0
-    classDef error fill:#ffebee
-    classDef success fill:#e8f5e8
+    %% Styling - Optimized for dark backgrounds
+    classDef process fill:#065f46,stroke:#10b981,stroke-width:2px,color:#ffffff
+    classDef decision fill:#7c2d12,stroke:#f97316,stroke-width:2px,color:#ffffff
+    classDef error fill:#7f1d1d,stroke:#ef4444,stroke-width:2px,color:#ffffff
+    classDef success fill:#14532d,stroke:#22c55e,stroke-width:2px,color:#ffffff
     
     class A,C,I,J process
     class B,H decision
@@ -214,10 +214,10 @@ graph TD
     
     F --> F1[etl_pipeline.log]
     
-    %% Styling
-    classDef root fill:#e3f2fd
-    classDef dir fill:#e8f5e8
-    classDef file fill:#fff3e0
+    %% Styling - Optimized for dark backgrounds
+    classDef root fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#ffffff
+    classDef dir fill:#065f46,stroke:#10b981,stroke-width:2px,color:#ffffff
+    classDef file fill:#7c2d12,stroke:#f97316,stroke-width:2px,color:#ffffff
     
     class A root
     class B,C,D,E,F,C1,C2,C3,D1,D2,D3,D4 dir
