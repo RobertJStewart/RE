@@ -222,6 +222,47 @@ geography_critical_columns = {
 5. ⏳ **Implement statistical calculations**
 6. ⏳ **Generate static files for frontend**
 
+## ⚠️ Immediate Priorities
+
+### **Zillow URL Change Error Handling**
+*"Implement robust error handling for when Zillow changes their data file URLs"*
+
+**Problem**: Zillow has already changed their data access methods once (from direct CSV downloads to interactive selection), and could change again, breaking our ingestion pipeline.
+
+**Solution Needed**:
+- **URL Validation**: Check if download URLs are still valid before processing
+- **Fallback Mechanisms**: Alternative data access methods when primary URLs fail
+- **Error Notifications**: Clear alerts when data source becomes unavailable
+- **Graceful Degradation**: Continue processing with cached data when possible
+- **URL Discovery**: Automated detection of new Zillow data endpoints
+
+**Implementation Priority**: **HIGH** - This could break the entire pipeline unexpectedly
+
+## 🔮 Future Development Goals
+
+### **Data Connection Function**
+*"Implement centralized data connection management for multi-source data access"*
+
+**Potential Features:**
+- **Multi-Source Support**: Handle different data providers (Zillow, Redfin, CoreLogic, etc.)
+- **API Management**: Centralized API key and authentication handling
+- **Rate Limiting**: Built-in throttling and retry logic
+- **Data Format Standardization**: Convert different provider formats to our standard structure
+- **Connection Health Monitoring**: Track data source availability and performance
+- **Fallback Mechanisms**: Automatic switching between primary and backup sources
+
+**Architecture Benefits:**
+- **Separation of Concerns**: Data connection logic separate from ingestion logic
+- **Reusability**: Same connection function for different geography levels
+- **Maintainability**: Centralized place to update API endpoints or authentication
+- **Testing**: Easier to mock and test data connections independently
+
+**When to Implement:**
+- When adding multiple data sources
+- When needing sophisticated error handling for data downloads
+- When standardizing data access patterns across the system
+- When ready to add real-time data feeds vs. batch downloads
+
 ## 📚 References
 
 ### Previous Project Learnings
