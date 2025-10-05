@@ -4,125 +4,148 @@
 
 ```mermaid
 graph TB
-    %% Data Sources
-    A[Zillow CSVs] --> B[Data Ingestion]
-    C[ZIP Coordinates] --> B
+    %% External Data Sources
+    A1[Zillow ZHVI Data<br/>📊 CSV Download] --> B[Data Ingestion<br/>🐍 Python Scripts]
+    A2[Zillow ZORI Data<br/>📊 CSV Download] --> B
+    A3[ZIP Code Coordinates<br/>🗺️ Geocoding API] --> B
     
-    %% Backend Processing
-    B --> D[Geographic Aggregation]
-    D --> E[Statistical Calculation]
-    E --> F[Static File Generation]
+    %% Data Ingestion Details
+    B --> B1[Data Validation<br/>🔍 Pandas/NumPy]
+    B1 --> B2[Data Cleaning<br/>🧹 Custom Scripts]
+    B2 --> B3[Coordinate Matching<br/>📍 H3 Geospatial]
     
-    %% Geographic Levels
-    D --> D1[Region Level]
-    D --> D2[State Region Level]
-    D --> D3[State Level]
-    D --> D4[ZIP Code Level]
+    %% Backend Processing Pipeline
+    B3 --> C[Geographic Aggregation<br/>🗺️ H3 + Custom Logic]
+    C --> D[Statistical Calculation<br/>📈 Pandas + NumPy]
+    D --> E[Static File Generation<br/>📁 JSON/GeoJSON Export]
     
-    %% Statistical Methods
-    E --> E1[Average]
-    E --> E2[Median]
-    E --> E3[Max/Min]
-    E --> E4[Count]
-    E --> E5[Std Dev]
+    %% Geographic Aggregation Levels
+    C --> C1[Region Level<br/>🌎 Multi-State Groups]
+    C --> C2[State Region Level<br/>🗺️ State Subdivisions]
+    C --> C3[State Level<br/>🏛️ Individual States]
+    C --> C4[ZIP Code Level<br/>📮 Individual ZIPs]
     
-    %% Static Files
-    F --> F1[Region JSON]
-    F --> F2[State Region JSON]
-    F --> F3[State JSON]
-    F --> F4[ZIP GeoJSON]
-    F --> F5[Statistics JSON]
-    F --> F6[Metadata JSON]
+    %% Statistical Methods Applied
+    D --> D1[Average Calculation<br/>📊 Mean Values]
+    D --> D2[Median Calculation<br/>📊 50th Percentile]
+    D --> D3[Min/Max Values<br/>📊 Range Analysis]
+    D --> D4[Count Statistics<br/>📊 Data Points]
+    D --> D5[Standard Deviation<br/>📊 Variance Analysis]
     
-    %% Frontend Consumption
-    F1 --> G[Frontend Overview]
-    F2 --> G
-    F3 --> G
-    F4 --> G
-    F5 --> G
-    F6 --> G
+    %% Generated Static Files
+    E --> E1[Region JSON<br/>📄 regions.json]
+    E --> E2[State Region JSON<br/>📄 state_regions.json]
+    E --> E3[State JSON<br/>📄 states.json]
+    E --> E4[ZIP GeoJSON<br/>🗺️ zip_latest.geojson]
+    E --> E5[Statistics JSON<br/>📊 statistics.json]
+    E --> E6[Metadata JSON<br/>📋 metadata.json]
     
-    F1 --> H[Frontend Time Series]
-    F2 --> H
-    F3 --> H
-    F4 --> H
-    F5 --> H
-    F6 --> H
+    %% Frontend Application Structure
+    E1 --> F[Frontend Overview<br/>🌐 HTML/CSS/JS]
+    E2 --> F
+    E3 --> F
+    E4 --> F
+    E5 --> F
+    E6 --> F
     
-    %% User Interface
-    G --> I[User Interface]
-    H --> I
+    E1 --> G[Frontend Time Series<br/>📈 Interactive Charts]
+    E2 --> G
+    E3 --> G
+    E4 --> G
+    E5 --> G
+    E6 --> G
     
-    %% Styling
-    classDef backend fill:#e1f5fe
-    classDef frontend fill:#f3e5f5
-    classDef data fill:#e8f5e8
-    classDef ui fill:#fff3e0
+    %% User Interface Components
+    F --> H[Overview Dashboard<br/>📊 Summary Views]
+    G --> I[Time Series Analysis<br/>📈 Trend Visualization]
     
-    class B,D,E,F backend
-    class G,H frontend
-    class A,C,F1,F2,F3,F4,F5,F6 data
-    class I ui
+    H --> J[User Interface<br/>🖥️ Web Browser]
+    I --> J
+    
+    %% Dark Theme Optimized Styling
+    classDef dataSource fill:#2d3748,stroke:#4a5568,stroke-width:2px,color:#e2e8f0
+    classDef ingestion fill:#1a365d,stroke:#2b6cb0,stroke-width:2px,color:#e2e8f0
+    classDef processing fill:#2d1b69,stroke:#553c9a,stroke-width:2px,color:#e2e8f0
+    classDef aggregation fill:#1a202c,stroke:#4a5568,stroke-width:2px,color:#e2e8f0
+    classDef statistics fill:#2d3748,stroke:#68d391,stroke-width:2px,color:#e2e8f0
+    classDef files fill:#1a365d,stroke:#4299e1,stroke-width:2px,color:#e2e8f0
+    classDef frontend fill:#553c9a,stroke:#9f7aea,stroke-width:2px,color:#e2e8f0
+    classDef ui fill:#2d3748,stroke:#f6e05e,stroke-width:2px,color:#e2e8f0
+    
+    class A1,A2,A3 dataSource
+    class B,B1,B2,B3 ingestion
+    class C,C1,C2,C3,C4 processing
+    class D,D1,D2,D3,D4,D5 aggregation
+    class E,E1,E2,E3,E4,E5,E6 statistics
+    class F,G files
+    class H,I frontend
+    class J ui
 ```
 
 ## 🏗️ Backend Processing Pipeline
 
 ```mermaid
 graph LR
-    %% Input
-    A[Raw Zillow CSVs] --> B[Data Ingestion Script]
-    C[ZIP Coordinates DB] --> B
+    %% Input Sources
+    A1[Zillow ZHVI CSV<br/>📊 Home Values] --> B[Python Ingestion<br/>🐍 zillow_ingest.py]
+    A2[Zillow ZORI CSV<br/>📊 Rental Rates] --> B
+    A3[ZIP Coordinates<br/>🗺️ Geocoding Service] --> B
     
-    %% Processing Steps
-    B --> D[Clean & Validate Data]
-    D --> E[Geographic Grouping]
-    E --> F[Statistical Aggregation]
-    F --> G[File Generation]
+    %% Processing Steps with Tools
+    B --> C[Data Validation<br/>🔍 Pandas DataFrame]
+    C --> D[Data Cleaning<br/>🧹 Custom Functions]
+    D --> E[Coordinate Matching<br/>📍 H3 Geospatial Index]
+    E --> F[Geographic Grouping<br/>🗺️ H3 + Custom Logic]
+    F --> G[Statistical Aggregation<br/>📈 Pandas GroupBy]
+    G --> H[File Generation<br/>📁 JSON/GeoJSON Export]
     
-    %% Output
-    G --> H[Static JSON Files]
-    G --> I[GeoJSON Files]
-    G --> J[Metadata Files]
+    %% Output Files
+    H --> I[Static JSON Files<br/>📄 regions.json<br/>📄 states.json<br/>📄 statistics.json]
+    H --> J[GeoJSON Files<br/>🗺️ zip_latest.geojson<br/>🗺️ regions.geojson]
+    H --> K[Metadata Files<br/>📋 metadata.json<br/>📋 config.json]
     
-    %% Styling
-    classDef process fill:#e3f2fd
-    classDef output fill:#e8f5e8
+    %% Dark Theme Optimized Styling
+    classDef input fill:#2d3748,stroke:#4a5568,stroke-width:2px,color:#e2e8f0
+    classDef process fill:#1a365d,stroke:#2b6cb0,stroke-width:2px,color:#e2e8f0
+    classDef output fill:#1a202c,stroke:#68d391,stroke-width:2px,color:#e2e8f0
     
-    class B,D,E,F,G process
-    class H,I,J output
+    class A1,A2,A3 input
+    class B,C,D,E,F,G,H process
+    class I,J,K output
 ```
 
 ## 🎨 Frontend Architecture
 
 ```mermaid
 graph TB
-    %% Static Files
-    A[Region JSON] --> D[Overview Page]
-    B[State Region JSON] --> D
-    C[State JSON] --> D
-    E[ZIP GeoJSON] --> D
-    F[Statistics JSON] --> D
-    G[Metadata JSON] --> D
+    %% Static Data Files
+    A[Region JSON<br/>📄 regions.json] --> D[Overview Page<br/>🌐 index.html]
+    B[State Region JSON<br/>📄 state_regions.json] --> D
+    C[State JSON<br/>📄 states.json] --> D
+    E[ZIP GeoJSON<br/>🗺️ zip_latest.geojson] --> D
+    F[Statistics JSON<br/>📊 statistics.json] --> D
+    G[Metadata JSON<br/>📋 metadata.json] --> D
     
-    A --> H[Time Series Page]
+    A --> H[Time Series Page<br/>📈 timeseries.html]
     B --> H
     C --> H
     E --> H
     F --> H
     G --> H
     
-    %% Page Components
-    D --> I[Data Summary]
-    D --> J[Charts & Graphs]
-    D --> K[Data Tables]
+    %% Overview Page Components
+    D --> I[Data Summary<br/>📊 Summary Cards]
+    D --> J[Charts & Graphs<br/>📈 Chart.js/D3.js]
+    D --> K[Data Tables<br/>📋 HTML Tables]
     
-    H --> L[Interactive Map]
-    H --> M[Time Slider]
-    H --> N[Statistical Controls]
-    H --> O[Export Tools]
+    %% Time Series Page Components
+    H --> L[Interactive Map<br/>🗺️ Leaflet/Mapbox]
+    H --> M[Time Slider<br/>⏰ Custom Controls]
+    H --> N[Statistical Controls<br/>📊 Filter Options]
+    H --> O[Export Tools<br/>💾 CSV/JSON Export]
     
-    %% User Interface
-    I --> P[User Interface]
+    %% User Interface Assembly
+    I --> P[User Interface<br/>🖥️ Web Browser]
     J --> P
     K --> P
     L --> P
@@ -130,11 +153,11 @@ graph TB
     N --> P
     O --> P
     
-    %% Styling
-    classDef data fill:#e8f5e8
-    classDef page fill:#f3e5f5
-    classDef component fill:#fff3e0
-    classDef ui fill:#ffebee
+    %% Dark Theme Optimized Styling
+    classDef data fill:#2d3748,stroke:#4a5568,stroke-width:2px,color:#e2e8f0
+    classDef page fill:#553c9a,stroke:#9f7aea,stroke-width:2px,color:#e2e8f0
+    classDef component fill:#1a365d,stroke:#4299e1,stroke-width:2px,color:#e2e8f0
+    classDef ui fill:#1a202c,stroke:#f6e05e,stroke-width:2px,color:#e2e8f0
     
     class A,B,C,E,F,G data
     class D,H page
