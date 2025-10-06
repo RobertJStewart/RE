@@ -457,3 +457,138 @@ graph TD
     class D,E,F,G,H,I process
     class J complete
 ```
+
+## Complete ETL Pipeline Testing & Enhancement
+
+### Enhanced Statistical Calculation with Graceful Degradation
+
+```mermaid
+flowchart TD
+    A[Start ETL Pipeline] --> B[Data Ingestion]
+    B --> C[Geographic Aggregation]
+    C --> D[Statistical Calculation]
+    D --> E[Enhanced Metadata Generation]
+    E --> F[Frontend-Ready JSON Output]
+    
+    D --> D1[Basic Statistics<br/>avg, median, min, max, std]
+    D --> D2[Advanced Statistics<br/>skewness, kurtosis, linear_trend]
+    D --> D3[Time Series<br/>pop, yoy, mom, qoq]
+    D --> D4[Market Health<br/>momentum, volatility, efficiency]
+    
+    D1 --> D5{All Dependencies<br/>Available?}
+    D2 --> D5
+    D3 --> D5
+    D4 --> D5
+    
+    D5 -->|Yes| D6[Calculate All Statistics]
+    D5 -->|No| D7[Graceful Degradation<br/>Skip Failed Statistics]
+    
+    D6 --> E
+    D7 --> E
+    
+    E --> E1[statistics_metadata.json<br/>Requested vs Calculated vs Failed]
+    E --> E2[statistics_availability.json<br/>Frontend-Friendly Categories]
+    E --> E3[Clean JSON Output<br/>Missing Stats Omitted]
+    
+    E1 --> F
+    E2 --> F
+    E3 --> F
+    
+    F --> G[Frontend Consumption<br/>Check Availability Before Use]
+    
+    style A fill:#1e3a8a,color:#ffffff
+    style F fill:#065f46,color:#ffffff
+    style D7 fill:#7c2d12,color:#ffffff
+    style G fill:#dc2626,color:#ffffff
+```
+
+### SciPy Dependency Management in Pipeline
+
+```mermaid
+sequenceDiagram
+    participant ETL as ETL Pipeline
+    participant CALC as StatisticalCalculation
+    participant SCIPY as SciPy Library
+    participant META as Metadata Generator
+    participant JSON as JSON Output
+    
+    ETL->>CALC: run()
+    CALC->>CALC: Initialize statistics methods
+    
+    loop For each statistic
+        CALC->>SCIPY: Import scipy functions
+        alt SciPy Available
+            SCIPY->>CALC: Return functions
+            CALC->>CALC: Calculate with SciPy
+        else SciPy Missing
+            CALC->>CALC: Skip SciPy-dependent stats
+            CALC->>CALC: Log warning
+        end
+    end
+    
+    CALC->>META: Generate enhanced metadata
+    META->>META: Track calculated vs failed stats
+    META->>JSON: Create availability summary
+    CALC->>JSON: Save clean statistics data
+    
+    JSON->>ETL: Return success with metadata
+```
+
+### Frontend JSON Consumption Strategy
+
+```mermaid
+flowchart TD
+    A[Frontend Load] --> B[Load statistics_availability.json]
+    B --> C[Check Available Statistics]
+    C --> D{Required Stats Available?}
+    
+    D -->|Yes| E[Load statistics data]
+    D -->|No| F[Show Warning Message]
+    
+    E --> G[Process Available Statistics]
+    F --> H[Show Available Statistics Only]
+    
+    G --> I[Display Full Dashboard]
+    H --> J[Display Partial Dashboard]
+    
+    I --> K[User Sees Complete Analytics]
+    J --> L[User Sees Available Analytics + Warning]
+    
+    style A fill:#1e3a8a,color:#ffffff
+    style E fill:#065f46,color:#ffffff
+    style F fill:#7c2d12,color:#ffffff
+    style I fill:#dc2626,color:#ffffff
+    style J fill:#7c2d12,color:#ffffff
+```
+
+### Complete Pipeline Performance with SciPy
+
+```mermaid
+graph TD
+    A[Pipeline Start] --> B[Data Ingestion: ~5s]
+    B --> C[Geographic Aggregation: ~10s]
+    C --> D[Statistical Calculation: ~3.5min]
+    D --> E[Enhanced Metadata: ~2s]
+    E --> F[Frontend JSON: ~1s]
+    F --> G[Pipeline Complete: ~4min Total]
+    
+    D --> D1[Basic Stats: ~30s]
+    D --> D2[SciPy Stats: ~2.5min]
+    D --> D3[Time Series: ~30s]
+    
+    E --> E1[Track Available Stats]
+    E --> E2[Generate Availability Summary]
+    E --> E3[Create Clean JSON]
+    
+    classDef init fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#ffffff
+    classDef process fill:#065f46,stroke:#10b981,stroke-width:2px,color:#ffffff
+    classDef scipy fill:#7c2d12,stroke:#f97316,stroke-width:2px,color:#ffffff
+    classDef meta fill:#dc2626,stroke:#ef4444,stroke-width:2px,color:#ffffff
+    classDef complete fill:#14532d,stroke:#22c55e,stroke-width:2px,color:#ffffff
+    
+    class A,B,C init
+    class D,D1,D3 process
+    class D2 scipy
+    class E,E1,E2,E3,F meta
+    class G complete
+```

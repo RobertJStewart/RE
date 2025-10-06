@@ -3,24 +3,25 @@
 RE Market Tool - Geographic Aggregation Script
 ==============================================
 
-This script creates geographic aggregations with support for both:
+This script creates geographic aggregations with two modes:
 1. **Calculated Aggregations** - Our custom geographic hierarchy
 2. **Provider Data** - Direct use of Zillow's pre-calculated data
 
 Geographic Hierarchy (Calculated):
 - ZIP Code → State → State Region → Region
-- Each level aggregates data from the level below
+- Each level organizes data from the level below
+- Stores raw time series data (no statistical calculations)
 
 Provider Data Options:
 - Use Zillow's pre-calculated data directly
-- No additional processing required
-- Faster performance for large datasets
+- Converts to consistent JSON format
+- Stores raw time series data for statistical processing
 
 Usage:
     python aggregate.py [--data-source SOURCE] [--aggregation-mode MODE] [--geography-levels LEVELS]
     
 Options:
-    --data-source        Data source (calculated, provider, both)
+    --data-source        Data source (calculated, provider)
     --aggregation-mode   Aggregation method (hierarchical, direct)
     --geography-levels   Comma-separated list (metro,state,county,city,zip,neighborhood)
 """
@@ -57,16 +58,15 @@ class GeographicAggregation:
     This class handles creating geographic aggregations using either:
     - Calculated aggregations (our custom hierarchy)
     - Provider data (Zillow's pre-calculated data)
-    - Both options for comparison
     """
     
-    def __init__(self, aggregations_path: Path, data_source: str = 'both'):
+    def __init__(self, aggregations_path: Path, data_source: str = 'calculated'):
         """
         Initialize the geographic aggregation process.
         
         Args:
             aggregations_path (Path): Base path for aggregation storage
-            data_source (str): Data source option (calculated, provider, both)
+            data_source (str): Data source option (calculated, provider)
         """
         self.aggregations_path = aggregations_path
         self.data_source = data_source
@@ -171,12 +171,12 @@ class GeographicAggregation:
             
             results = {}
             
-            if self.data_source in ['calculated', 'both']:
+            if self.data_source == 'calculated':
                 logger.info("🧮 Processing calculated aggregations...")
                 calculated_results = self._process_calculated_aggregations(geography_levels, aggregation_mode)
                 results['calculated'] = calculated_results
             
-            if self.data_source in ['provider', 'both']:
+            elif self.data_source == 'provider':
                 logger.info("📊 Processing provider data...")
                 provider_results = self._process_provider_data(geography_levels)
                 results['provider'] = provider_results
@@ -291,7 +291,7 @@ class GeographicAggregation:
         """
         try:
             # Load ZIP code data
-            zip_file = self.aggregations_path.parent / "data" / "processed" / "zhvi_zip_processed.csv"
+            zip_file = self.aggregations_path.parent / "data" / "processed" / "zip_zhvi_processed.csv"
             if not zip_file.exists():
                 return {'success': False, 'error': 'ZIP code data not found'}
             
@@ -325,7 +325,7 @@ class GeographicAggregation:
         """
         try:
             # Load ZIP code data
-            zip_file = self.aggregations_path.parent / "data" / "processed" / "zhvi_zip_processed.csv"
+            zip_file = self.aggregations_path.parent / "data" / "processed" / "zip_zhvi_processed.csv"
             if not zip_file.exists():
                 return {'success': False, 'error': 'ZIP code data not found'}
             
@@ -441,7 +441,7 @@ class GeographicAggregation:
                 'RegionID': int(row['RegionID']),
                 'RegionName': row['RegionName'],
                 'SizeRank': int(row['SizeRank']),
-                'time_series': {}
+                'raw_time_series': {}
             }
             
             # Add geography-specific fields
@@ -452,10 +452,10 @@ class GeographicAggregation:
             if 'CountyName' in row:
                 aggregation['CountyName'] = row['CountyName']
             
-            # Add time series data
+            # Add raw time series data (single values as arrays for consistency)
             for date_col in date_columns:
                 if pd.notna(row[date_col]):
-                    aggregation['time_series'][date_col] = float(row[date_col])
+                    aggregation['raw_time_series'][date_col] = [float(row[date_col])]
             
             aggregations.append(aggregation)
         
@@ -486,14 +486,14 @@ class GeographicAggregation:
                 'RegionID': hash(state_name) % 1000000,  # Generate unique ID
                 'RegionName': state_name,
                 'SizeRank': len(aggregations) + 1,
-                'time_series': {}
+                'raw_time_series': {}
             }
             
-            # Aggregate time series data (average)
-            for date_col in date_columns:
-                values = state_df[date_col].dropna()
-                if len(values) > 0:
-                    aggregation['time_series'][date_col] = float(values.mean())
+        # Store raw time series data (no statistical calculations)
+        for date_col in date_columns:
+            values = state_df[date_col].dropna()
+            if len(values) > 0:
+                aggregation['raw_time_series'][date_col] = values.tolist()
             
             aggregations.append(aggregation)
         
@@ -528,23 +528,23 @@ class GeographicAggregation:
                 'RegionID': hash(region_name) % 1000000,
                 'RegionName': region_name,
                 'SizeRank': len(aggregations) + 1,
-                'time_series': {}
+                'raw_time_series': {}
             }
             
-            # Aggregate time series data from states
+            # Collect raw time series data from states (no statistical calculations)
             if states:
                 # Get all date columns from first state
                 first_state = states[0]
-                date_columns = list(first_state.get('time_series', {}).keys())
+                date_columns = list(first_state.get('raw_time_series', {}).keys())
                 
                 for date_col in date_columns:
-                    values = []
+                    all_values = []
                     for state in states:
-                        if date_col in state.get('time_series', {}):
-                            values.append(state['time_series'][date_col])
+                        if date_col in state.get('raw_time_series', {}):
+                            all_values.extend(state['raw_time_series'][date_col])
                     
-                    if values:
-                        aggregation['time_series'][date_col] = float(np.mean(values))
+                    if all_values:
+                        aggregation['raw_time_series'][date_col] = all_values
             
             aggregations.append(aggregation)
         
@@ -580,23 +580,23 @@ class GeographicAggregation:
                     'RegionID': hash(region_name) % 1000000,
                     'RegionName': region_name,
                     'SizeRank': len(aggregations) + 1,
-                    'time_series': {}
+                    'raw_time_series': {}
                 }
                 
-                # Aggregate time series data from state regions
+                # Collect raw time series data from state regions (no statistical calculations)
                 if matching_regions:
                     # Get all date columns from first state region
                     first_region = matching_regions[0]
-                    date_columns = list(first_region.get('time_series', {}).keys())
+                    date_columns = list(first_region.get('raw_time_series', {}).keys())
                     
                     for date_col in date_columns:
-                        values = []
+                        all_values = []
                         for sr in matching_regions:
-                            if date_col in sr.get('time_series', {}):
-                                values.append(sr['time_series'][date_col])
+                            if date_col in sr.get('raw_time_series', {}):
+                                all_values.extend(sr['raw_time_series'][date_col])
                         
-                        if values:
-                            aggregation['time_series'][date_col] = float(np.mean(values))
+                        if all_values:
+                            aggregation['raw_time_series'][date_col] = all_values
                 
                 aggregations.append(aggregation)
         
@@ -620,7 +620,7 @@ class GeographicAggregation:
             
             df = pd.read_csv(provider_file)
             
-            # Convert to JSON format
+            # Convert to JSON format (using raw time series)
             provider_data = self._create_geographic_aggregations(df, geography)
             
             # Save provider data
@@ -668,13 +668,13 @@ class GeographicAggregation:
 def main():
     """Main entry point for the geographic aggregation script."""
     parser = argparse.ArgumentParser(description='RE Market Tool Geographic Aggregation')
-    parser.add_argument('--data-source', default='both', 
-                       choices=['calculated', 'provider', 'both'],
+    parser.add_argument('--data-source', default='calculated', 
+                       choices=['calculated', 'provider'],
                        help='Data source option')
     parser.add_argument('--aggregation-mode', default='hierarchical',
                        choices=['hierarchical', 'direct'],
                        help='Aggregation mode')
-    parser.add_argument('--geography-levels', default='metro,state,county,city,zip,neighborhood',
+    parser.add_argument('--geography-levels', default='zip,state,state_region,region',
                        help='Comma-separated list of geography levels')
     
     args = parser.parse_args()

@@ -1,6 +1,6 @@
 {
-  "timestamp": "2025-10-05T14:26:22.427056",
-  "data_source": "both",
+  "timestamp": "2025-10-05T19:42:14.582916",
+  "data_source": "calculated",
   "geography_hierarchy": {
     "zip": {
       "name": "ZIP Code",
@@ -139,41 +139,24 @@
       "aggregation_mode": "hierarchical",
       "geography_results": {
         "zip": {
-          "success": false,
-          "error": "ZIP code data not found"
+          "success": true,
+          "output_file": "/Users/robertstewart/Documents/Projects/RE/backend/aggregations/zipcodes/zipcodes.json",
+          "record_count": 50
         },
         "state": {
-          "success": false,
-          "error": "ZIP code data not found"
+          "success": true,
+          "output_file": "/Users/robertstewart/Documents/Projects/RE/backend/aggregations/states/states.json",
+          "record_count": 24
         },
         "state_region": {
-          "success": false,
-          "error": "State data not found"
+          "success": true,
+          "output_file": "/Users/robertstewart/Documents/Projects/RE/backend/aggregations/state_regions/state_regions.json",
+          "record_count": 0
         },
         "region": {
-          "success": false,
-          "error": "State region data not found"
-        }
-      }
-    },
-    "provider": {
-      "success": true,
-      "provider_results": {
-        "zip": {
-          "success": false,
-          "error": "Provider data not found for zip"
-        },
-        "city": {
-          "success": false,
-          "error": "Provider data not found for city"
-        },
-        "county": {
-          "success": false,
-          "error": "Provider data not found for county"
-        },
-        "state": {
-          "success": false,
-          "error": "Provider data not found for state"
+          "success": true,
+          "output_file": "/Users/robertstewart/Documents/Projects/RE/backend/aggregations/regions/regions.json",
+          "record_count": 0
         }
       }
     }

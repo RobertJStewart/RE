@@ -502,3 +502,101 @@ graph LR
     class H zori
     class B,C,D,E,F,G,I geography
 ```
+
+## Complete ETL Pipeline Testing & Enhancement
+
+### Enhanced Statistical Calculation with Graceful Degradation
+
+```mermaid
+flowchart TD
+    A[Start ETL Pipeline] --> B[Data Ingestion]
+    B --> C[Geographic Aggregation]
+    C --> D[Statistical Calculation]
+    D --> E[Enhanced Metadata Generation]
+    E --> F[Frontend-Ready JSON Output]
+    
+    D --> D1[Basic Statistics<br/>avg, median, min, max, std]
+    D --> D2[Advanced Statistics<br/>skewness, kurtosis, linear_trend]
+    D --> D3[Time Series<br/>pop, yoy, mom, qoq]
+    D --> D4[Market Health<br/>momentum, volatility, efficiency]
+    
+    D1 --> D5{All Dependencies<br/>Available?}
+    D2 --> D5
+    D3 --> D5
+    D4 --> D5
+    
+    D5 -->|Yes| D6[Calculate All Statistics]
+    D5 -->|No| D7[Graceful Degradation<br/>Skip Failed Statistics]
+    
+    D6 --> E
+    D7 --> E
+    
+    E --> E1[statistics_metadata.json<br/>Requested vs Calculated vs Failed]
+    E --> E2[statistics_availability.json<br/>Frontend-Friendly Categories]
+    E --> E3[Clean JSON Output<br/>Missing Stats Omitted]
+    
+    E1 --> F
+    E2 --> F
+    E3 --> F
+    
+    F --> G[Frontend Consumption<br/>Check Availability Before Use]
+    
+    style A fill:#2E8B57,color:#FFFFFF
+    style F fill:#4169E1,color:#FFFFFF
+    style D7 fill:#FF8C00,color:#FFFFFF
+    style G fill:#32CD32,color:#FFFFFF
+```
+
+### Frontend JSON Consumption Strategy
+
+```mermaid
+sequenceDiagram
+    participant F as Frontend
+    participant M as Metadata
+    participant D as Data JSON
+    participant U as User
+    
+    F->>M: Load statistics_availability.json
+    M-->>F: Available Statistics Categories
+    
+    F->>F: Check Required Statistics
+    Note over F: if (availability.trend.includes('linear_trend'))
+    
+    F->>D: Load statistics data
+    D-->>F: Clean JSON (missing stats omitted)
+    
+    F->>F: Safe Data Access
+    Note over F: stats.linear_trend || defaultValue
+    
+    F->>U: Display Available Statistics
+    Note over F: Gracefully handle missing data
+    
+    alt Statistics Available
+        F->>U: Show Full Analytics Dashboard
+    else Statistics Missing
+        F->>U: Show Available Statistics + Warning
+    end
+```
+
+### SciPy Dependency Management
+
+```mermaid
+flowchart LR
+    A[Calculate Statistics] --> B{SciPy Available?}
+    B -->|Yes| C[Use SciPy Functions<br/>skewness, kurtosis, linear_trend]
+    B -->|No| D[Graceful Degradation<br/>Skip SciPy-dependent stats]
+    
+    C --> E[Full Statistics Calculated]
+    D --> F[Partial Statistics Calculated]
+    
+    E --> G[Enhanced Metadata<br/>All stats available]
+    F --> H[Enhanced Metadata<br/>Failed stats documented]
+    
+    G --> I[Frontend Gets Full Data]
+    H --> J[Frontend Gets Available Data<br/>+ Clear Documentation]
+    
+    style C fill:#32CD32,color:#FFFFFF
+    style D fill:#FF8C00,color:#FFFFFF
+    style I fill:#4169E1,color:#FFFFFF
+    style J fill:#FFD700,color:#000000
+```
