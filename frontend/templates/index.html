@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RE Market Tool</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🏠 RE Market Tool</h1>
+            <p>Real Estate Market Analysis & Visualization</p>
+        </header>
+
+        <!-- Data Source Selector -->
+        <section class="data-selector">
+            <div class="selector-container">
+                <label for="dataSourceSelect">Select Data Source:</label>
+                <select id="dataSourceSelect" class="data-select">
+                    <option value="">Loading data sources...</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- Navigation -->
+        <nav class="navigation">
+            <div class="nav-container">
+                <a href="#overview" class="nav-link active" data-page="overview">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Overview</span>
+                </a>
+                <a href="#timeseries" class="nav-link" data-page="timeseries">
+                    <span class="nav-icon">📈</span>
+                    <span class="nav-text">Time Series</span>
+                </a>
+                <a href="#addnew" class="nav-link" data-page="addnew">
+                    <span class="nav-icon">➕</span>
+                    <span class="nav-text">Add New</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Overview Page -->
+            <div id="overview" class="page active">
+                <div class="page-header">
+                    <h2>📊 Market Overview</h2>
+                    <p>Comprehensive market analysis and key metrics</p>
+                </div>
+                <div class="page-content">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>Total Regions</h3>
+                            <div class="stat-value" id="totalRegions">-</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Average Price</h3>
+                            <div class="stat-value" id="avgPrice">-</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Price Trend</h3>
+                            <div class="stat-value" id="priceTrend">-</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Market Health</h3>
+                            <div class="stat-value" id="marketHealth">-</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Price Distribution</h3>
+                        <div id="priceChart" class="chart-placeholder">
+                            <p>Select a data source to view price distribution</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Time Series Page -->
+            <div id="timeseries" class="page">
+                <div class="page-header">
+                    <h2>📈 Time Series Analysis</h2>
+                    <p>Historical trends and period-over-period changes</p>
+                </div>
+                <div class="page-content">
+                    <div class="timeseries-controls">
+                        <div class="control-group">
+                            <label for="regionSelect">Select Region:</label>
+                            <select id="regionSelect" class="control-select">
+                                <option value="">Select a region...</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label for="metricSelect">Select Metric:</label>
+                            <select id="metricSelect" class="control-select">
+                                <option value="avg">Average Price</option>
+                                <option value="linear_trend">Linear Trend</option>
+                                <option value="trend_strength">Trend Strength</option>
+                                <option value="pop">Period over Period</option>
+                                <option value="yoy">Year over Year</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Time Series Chart</h3>
+                        <div id="timeseriesChart" class="chart-placeholder">
+                            <p>Select a region and metric to view time series data</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add New Page -->
+            <div id="addnew" class="page">
+                <div class="page-header">
+                    <h2>➕ Add New Data Source</h2>
+                    <p>Connect new data sources to expand market analysis</p>
+                </div>
+                <div class="page-content">
+                    <div class="add-new-form">
+                        <div class="form-section">
+                            <h3>Data Source Information</h3>
+                            <div class="form-group">
+                                <label for="sourceName">Data Source Name:</label>
+                                <input type="text" id="sourceName" placeholder="e.g., Redfin, CoreLogic">
+                            </div>
+                            <div class="form-group">
+                                <label for="sourceDescription">Description:</label>
+                                <textarea id="sourceDescription" placeholder="Describe the data source and what data it provides..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="sourceUrl">Data URL:</label>
+                                <input type="url" id="sourceUrl" placeholder="https://example.com/data.csv">
+                            </div>
+                        </div>
+                        <div class="form-section">
+                            <h3>Data Configuration</h3>
+                            <div class="form-group">
+                                <label for="dataType">Data Type:</label>
+                                <select id="dataType">
+                                    <option value="zhvi">Home Value Index (ZHVI)</option>
+                                    <option value="zori">Rental Index (ZORI)</option>
+                                    <option value="inventory">Inventory Data</option>
+                                    <option value="sales">Sales Data</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="geographyLevels">Geography Levels:</label>
+                                <div class="checkbox-group">
+                                    <label><input type="checkbox" value="metro"> Metro</label>
+                                    <label><input type="checkbox" value="state"> State</label>
+                                    <label><input type="checkbox" value="county"> County</label>
+                                    <label><input type="checkbox" value="city"> City</label>
+                                    <label><input type="checkbox" value="zip"> ZIP Code</label>
+                                    <label><input type="checkbox" value="neighborhood"> Neighborhood</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button id="testConnection" class="btn btn-secondary">Test Connection</button>
+                            <button id="addDataSource" class="btn btn-primary">Add Data Source</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2025 RE Market Tool. Built with ❤️ for real estate analysis.</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

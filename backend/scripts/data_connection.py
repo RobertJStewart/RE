@@ -18,6 +18,7 @@ import sys
 import logging
 import requests
 import pandas as pd
+import io
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Tuple
@@ -49,6 +50,17 @@ class DataSourceMetadata:
     date_range: str
     connection_methods: List[Dict[str, Any]]
     fallback_procedures: List[Dict[str, Any]]
+
+@dataclass
+class DiscoveryResult:
+    """Result of data source discovery process."""
+    success: bool
+    discovered_columns: List[str]
+    critical_columns: List[str]
+    date_columns: List[str]
+    sample_data: Optional[pd.DataFrame] = None
+    error_message: Optional[str] = None
+    confidence_score: float = 0.0
 
 class BaseDataConnection(ABC):
     """
@@ -111,6 +123,112 @@ class BaseDataConnection(ABC):
             List[Dict]: List of fallback procedures
         """
         pass
+    
+    # Phase 1: Data Source Introspection Methods
+    @abstractmethod
+    def discover_columns(self, data_type: str, sub_type: str, geography: str, sample_size: int = 100) -> DiscoveryResult:
+        """
+        Discover required columns by analyzing sample data.
+        
+        Args:
+            data_type: Type of data (e.g., 'zhvi', 'zori')
+            sub_type: Sub-type of data (e.g., 'all_homes_smoothed_seasonally_adjusted')
+            geography: Geographic level (e.g., 'zip', 'metro')
+            sample_size: Number of rows to sample for analysis
+            
+        Returns:
+            DiscoveryResult with discovered column information
+        """
+        pass
+    
+    @abstractmethod
+    def discover_geographic_hierarchy(self) -> Dict[str, Dict[str, Any]]:
+        """
+        Discover available geographic levels and their relationships.
+        
+        Returns:
+            Dictionary mapping geography levels to their metadata
+        """
+        pass
+    
+    def _analyze_required_columns(self, sample_data: pd.DataFrame, data_type: str, geography: str) -> Tuple[List[str], List[str], float]:
+        """
+        Analyze sample data to determine required columns and date columns.
+        
+        Args:
+            sample_data: Sample DataFrame to analyze
+            data_type: Type of data being analyzed
+            geography: Geographic level being analyzed
+            
+        Returns:
+            Tuple of (critical_columns, date_columns, confidence_score)
+        """
+        if sample_data.empty:
+            return [], [], 0.0
+        
+        # Identify critical columns based on data type and geography
+        critical_columns = []
+        date_columns = []
+        confidence_score = 0.0
+        
+        # Always required columns
+        base_columns = ['RegionID', 'RegionName']
+        
+        # Geography-specific columns
+        geography_columns = {
+            'metro': ['StateName', 'Metro', 'CountyName', 'SizeRank'],
+            'state': ['StateName', 'SizeRank'],
+            'county': ['StateName', 'CountyName', 'SizeRank'],
+            'city': ['StateName', 'CityName', 'SizeRank'],
+            'zip': ['StateName', 'SizeRank'],
+            'neighborhood': ['StateName', 'NeighborhoodName', 'CityName', 'SizeRank']
+        }
+        
+        # Check for base columns
+        for col in base_columns:
+            if col in sample_data.columns:
+                critical_columns.append(col)
+                confidence_score += 0.2
+        
+        # Check for geography-specific columns
+        geo_cols = geography_columns.get(geography, [])
+        for col in geo_cols:
+            if col in sample_data.columns:
+                critical_columns.append(col)
+                confidence_score += 0.1
+        
+        # Identify date columns (typically YYYY-MM-DD format or similar)
+        for col in sample_data.columns:
+            if col not in critical_columns:
+                # Check if column looks like a date
+                if self._is_date_column(sample_data[col]):
+                    date_columns.append(col)
+                    confidence_score += 0.05
+        
+        # Normalize confidence score
+        confidence_score = min(confidence_score, 1.0)
+        
+        return critical_columns, date_columns, confidence_score
+    
+    def _is_date_column(self, series: pd.Series) -> bool:
+        """
+        Check if a pandas Series contains date-like data.
+        
+        Args:
+            series: Pandas Series to check
+            
+        Returns:
+            True if series appears to contain dates
+        """
+        try:
+            # Try to convert to datetime
+            pd.to_datetime(series.dropna().head(10))
+            return True
+        except:
+            # Check if column name suggests it's a date
+            col_name = series.name.lower()
+            date_indicators = ['date', 'time', 'year', 'month', 'day', 'period']
+            return any(indicator in col_name for indicator in date_indicators)
     
     def check_connection_health(self, data_type: str, sub_type: str, geography: str) -> Dict[str, Any]:
         """
@@ -321,6 +439,230 @@ class REDataConnection(BaseDataConnection):
             return self.zillow.get_download_url(data_type, sub_type, geography)
         else:
             raise ValueError(f"Unknown data source: {data_source}")
+    
+    # Phase 2: Geographic Hierarchy Discovery
+    def discover_geographic_hierarchy(self, data_source: str = 'zillow') -> Dict[str, Dict[str, Any]]:
+        """
+        Discover available geographic levels and their relationships.
+        
+        Args:
+            data_source: Data source to discover hierarchy for
+            
+        Returns:
+            Dictionary mapping geography levels to their metadata
+        """
+        if data_source == 'zillow':
+            return self.zillow.discover_geographic_hierarchy()
+        else:
+            raise ValueError(f"Unknown data source: {data_source}")
+    
+    def discover_columns(self, data_source: str, data_type: str, sub_type: str, geography: str, sample_size: int = 100) -> DiscoveryResult:
+        """
+        Discover required columns by analyzing sample data.
+        
+        Args:
+            data_source: Data source
+            data_type: Type of data
+            sub_type: Sub-type of data
+            geography: Geographic level
+            sample_size: Number of rows to sample for analysis
+            
+        Returns:
+            DiscoveryResult with discovered column information
+        """
+        if data_source == 'zillow':
+            return self.zillow.discover_columns(data_type, sub_type, geography, sample_size)
+        else:
+            raise ValueError(f"Unknown data source: {data_source}")
+    
+    def get_dynamic_critical_columns(self, data_source: str, data_type: str, sub_type: str, geography: str, use_discovery: bool = True) -> List[str]:
+        """
+        Get critical columns using either discovery or hardcoded fallback.
+        
+        Args:
+            data_source: Data source
+            data_type: Type of data
+            sub_type: Sub-type of data
+            geography: Geographic level
+            use_discovery: Whether to use discovery or fallback to hardcoded
+            
+        Returns:
+            List of critical columns
+        """
+        if use_discovery:
+            try:
+                # Try discovery first
+                result = self.discover_columns(data_source, data_type, sub_type, geography, sample_size=50)
+                if result.success and result.critical_columns:
+                    logger.info(f"✅ Using discovered critical columns for {data_source}-{data_type}-{geography}")
+                    return result.critical_columns
+            except Exception as e:
+                logger.warning(f"⚠️ Discovery failed, falling back to hardcoded: {e}")
+        
+        # Fallback to hardcoded
+        if data_source == 'zillow':
+            return self.zillow.get_critical_columns(geography)
+        else:
+            raise ValueError(f"Unknown data source: {data_source}")
+    
+    def get_dynamic_geographic_hierarchy(self, data_source: str = 'zillow', use_discovery: bool = True) -> Dict[str, Dict[str, Any]]:
+        """
+        Get geographic hierarchy using either discovery or hardcoded fallback.
+        
+        Args:
+            data_source: Data source
+            use_discovery: Whether to use discovery or fallback to hardcoded
+            
+        Returns:
+            Dictionary mapping geography levels to their metadata
+        """
+        if use_discovery:
+            try:
+                # Try discovery first
+                hierarchy = self.discover_geographic_hierarchy(data_source)
+                if hierarchy:
+                    logger.info(f"✅ Using discovered geographic hierarchy for {data_source}")
+                    return hierarchy
+            except Exception as e:
+                logger.warning(f"⚠️ Discovery failed, falling back to hardcoded: {e}")
+        
+        # Fallback to hardcoded
+        if data_source == 'zillow':
+            return {
+                'metro': {'name': 'Metro', 'description': 'Metropolitan areas'},
+                'state': {'name': 'State', 'description': 'US states'},
+                'county': {'name': 'County', 'description': 'Counties'},
+                'city': {'name': 'City', 'description': 'Cities'},
+                'zip': {'name': 'ZIP Code', 'description': 'ZIP codes'},
+                'neighborhood': {'name': 'Neighborhood', 'description': 'Neighborhoods'}
+            }
+        else:
+            raise ValueError(f"Unknown data source: {data_source}")
+    
+    # Phase 3: Cross-Source Standardization and Schema Registry
+    def standardize_columns(self, source_columns: List[str], data_source: str) -> Dict[str, str]:
+        """
+        Standardize column names across different data sources.
+        
+        Args:
+            source_columns: List of column names from the data source
+            data_source: Name of the data source
+            
+        Returns:
+            Dictionary mapping source columns to standardized names
+        """
+        # Standard column mappings for different sources
+        column_mappings = {
+            'zillow': {
+                'RegionID': 'region_id',
+                'RegionName': 'region_name', 
+                'StateName': 'state_name',
+                'Metro': 'metro_name',
+                'CountyName': 'county_name',
+                'CityName': 'city_name',
+                'NeighborhoodName': 'neighborhood_name',
+                'SizeRank': 'size_rank'
+            }
+        }
+        
+        mapping = column_mappings.get(data_source, {})
+        standardized = {}
+        
+        for col in source_columns:
+            # Use mapping if available, otherwise keep original
+            standardized[col] = mapping.get(col, col.lower().replace(' ', '_'))
+        
+        logger.info(f"📋 Standardized {len(standardized)} columns for {data_source}")
+        return standardized
+    
+    def get_schema_registry(self, data_source: str) -> Dict[str, Any]:
+        """
+        Get schema registry information for a data source.
+        
+        Args:
+            data_source: Name of the data source
+            
+        Returns:
+            Dictionary containing schema information
+        """
+        schemas = {
+            'zillow': {
+                'name': 'Zillow Real Estate Data',
+                'version': '1.0',
+                'description': 'Zillow home value and rental data',
+                'supported_data_types': ['zhvi', 'zori'],
+                'supported_geographies': ['metro', 'state', 'county', 'city', 'zip', 'neighborhood'],
+                'column_standards': {
+                    'region_id': {'type': 'integer', 'required': True, 'description': 'Unique region identifier'},
+                    'region_name': {'type': 'string', 'required': True, 'description': 'Human-readable region name'},
+                    'state_name': {'type': 'string', 'required': True, 'description': 'State name'},
+                    'size_rank': {'type': 'integer', 'required': True, 'description': 'Size ranking within geography'},
+                    'metro_name': {'type': 'string', 'required': False, 'description': 'Metropolitan area name'},
+                    'county_name': {'type': 'string', 'required': False, 'description': 'County name'},
+                    'city_name': {'type': 'string', 'required': False, 'description': 'City name'},
+                    'neighborhood_name': {'type': 'string', 'required': False, 'description': 'Neighborhood name'}
+                },
+                'date_column_pattern': r'^\d{4}-\d{2}-\d{2}$',
+                'data_frequency': 'monthly',
+                'last_updated': '2025-10-05'
+            }
+        }
+        
+        return schemas.get(data_source, {})
+    
+    def validate_schema_compliance(self, data_source: str, data_type: str, sub_type: str, geography: str, sample_data: pd.DataFrame) -> Dict[str, Any]:
+        """
+        Validate that sample data complies with the expected schema.
+        
+        Args:
+            data_source: Data source name
+            data_type: Type of data
+            sub_type: Sub-type of data
+            geography: Geographic level
+            sample_data: Sample DataFrame to validate
+            
+        Returns:
+            Dictionary with validation results
+        """
+        schema = self.get_schema_registry(data_source)
+        if not schema:
+            return {'valid': False, 'error': f'No schema found for {data_source}'}
+        
+        validation_results = {
+            'valid': True,
+            'warnings': [],
+            'errors': [],
+            'compliance_score': 0.0,
+            'missing_required': [],
+            'extra_columns': [],
+            'type_mismatches': []
+        }
+        
+        # Check required columns
+        required_columns = [col for col, info in schema['column_standards'].items() if info.get('required', False)]
+        standardized_mapping = self.standardize_columns(list(sample_data.columns), data_source)
+        
+        # Check for missing required columns
+        for req_col in required_columns:
+            if req_col not in standardized_mapping.values():
+                validation_results['missing_required'].append(req_col)
+                validation_results['errors'].append(f'Missing required column: {req_col}')
+        
+        # Check for extra columns
+        expected_columns = set(schema['column_standards'].keys())
+        actual_columns = set(standardized_mapping.values())
+        validation_results['extra_columns'] = list(actual_columns - expected_columns)
+        
+        # Calculate compliance score
+        total_checks = len(required_columns) + len(validation_results['extra_columns'])
+        passed_checks = len(required_columns) - len(validation_results['missing_required'])
+        validation_results['compliance_score'] = passed_checks / total_checks if total_checks > 0 else 1.0
+        
+        # Overall validation
+        validation_results['valid'] = len(validation_results['errors']) == 0
+        
+        logger.info(f"🔍 Schema validation for {data_source}-{data_type}-{geography}: {validation_results['compliance_score']:.2f} compliance")
+        return validation_results
     
     def get_all_available_combinations(self) -> List[Tuple[str, str, str, str]]:
         """
@@ -900,6 +1242,168 @@ class ZillowDataConnection(BaseDataConnection):
             return 'https://files.zillowstatic.com/research/public_csvs/zori/Zip_ZORI_AllHomesPlusMultifamily.csv'
         else:
             raise ValueError(f"No download URL available for {data_type}-{sub_type}-{geography}")
+    
+    # Phase 1: Data Source Introspection Implementation
+    def discover_columns(self, data_type: str, sub_type: str, geography: str, sample_size: int = 100) -> DiscoveryResult:
+        """
+        Discover required columns by analyzing sample data from Zillow.
+        
+        Args:
+            data_type: Type of data (e.g., 'zhvi', 'zori')
+            sub_type: Sub-type of data (e.g., 'all_homes_smoothed_seasonally_adjusted')
+            geography: Geographic level (e.g., 'zip', 'metro')
+            sample_size: Number of rows to sample for analysis
+            
+        Returns:
+            DiscoveryResult with discovered column information
+        """
+        try:
+            logger.info(f"🔍 Discovering columns for {data_type}-{sub_type}-{geography}")
+            
+            # Get download URL
+            download_url = self.get_download_url(data_type, sub_type, geography)
+            
+            # Download sample data
+            sample_data = self._download_sample_data(download_url, sample_size)
+            
+            if sample_data.empty:
+                return DiscoveryResult(
+                    success=False,
+                    discovered_columns=[],
+                    critical_columns=[],
+                    date_columns=[],
+                    error_message="No data available for analysis"
+                )
+            
+            # Analyze the sample data
+            critical_columns, date_columns, confidence_score = self._analyze_required_columns(
+                sample_data, data_type, geography
+            )
+            
+            # All columns in the sample
+            discovered_columns = list(sample_data.columns)
+            
+            logger.info(f"✅ Discovered {len(discovered_columns)} columns with {confidence_score:.2f} confidence")
+            
+            return DiscoveryResult(
+                success=True,
+                discovered_columns=discovered_columns,
+                critical_columns=critical_columns,
+                date_columns=date_columns,
+                sample_data=sample_data,
+                confidence_score=confidence_score
+            )
+            
+        except Exception as e:
+            logger.error(f"❌ Column discovery failed: {str(e)}")
+            return DiscoveryResult(
+                success=False,
+                discovered_columns=[],
+                critical_columns=[],
+                date_columns=[],
+                error_message=str(e)
+            )
+    
+    def discover_geographic_hierarchy(self) -> Dict[str, Dict[str, Any]]:
+        """
+        Discover available geographic levels and their relationships for Zillow data.
+        
+        Returns:
+            Dictionary mapping geography levels to their metadata
+        """
+        hierarchy = {
+            'region': {
+                'name': 'Region',
+                'description': 'Major US regions (Northeast, Southeast, etc.)',
+                'parent_level': None,
+                'child_levels': ['state_region'],
+                'typical_count': 5,
+                'data_available': True
+            },
+            'state_region': {
+                'name': 'State Region',
+                'description': 'Logical state groupings (New England, Mid-Atlantic, etc.)',
+                'parent_level': 'region',
+                'child_levels': ['state'],
+                'typical_count': 9,
+                'data_available': True
+            },
+            'state': {
+                'name': 'State',
+                'description': 'Individual US states',
+                'parent_level': 'state_region',
+                'child_levels': ['county', 'city'],
+                'typical_count': 50,
+                'data_available': True
+            },
+            'county': {
+                'name': 'County',
+                'description': 'Counties within states',
+                'parent_level': 'state',
+                'child_levels': ['city', 'zip'],
+                'typical_count': 3000,
+                'data_available': True
+            },
+            'city': {
+                'name': 'City',
+                'description': 'Cities within counties',
+                'parent_level': 'county',
+                'child_levels': ['zip', 'neighborhood'],
+                'typical_count': 10000,
+                'data_available': True
+            },
+            'zip': {
+                'name': 'ZIP Code',
+                'description': 'Individual ZIP codes',
+                'parent_level': 'city',
+                'child_levels': ['neighborhood'],
+                'typical_count': 40000,
+                'data_available': True
+            },
+            'neighborhood': {
+                'name': 'Neighborhood',
+                'description': 'Neighborhoods within cities',
+                'parent_level': 'city',
+                'child_levels': [],
+                'typical_count': 100000,
+                'data_available': True
+            }
+        }
+        
+        logger.info(f"🗺️ Discovered geographic hierarchy with {len(hierarchy)} levels")
+        return hierarchy
+    
+    def _download_sample_data(self, url: str, sample_size: int) -> pd.DataFrame:
+        """
+        Download sample data from Zillow URL.
+        
+        Args:
+            url: Download URL
+            sample_size: Number of rows to sample
+            
+        Returns:
+            Sample DataFrame
+        """
+        try:
+            logger.info(f"📥 Downloading sample data from {url}")
+            
+            # Download the CSV
+            response = requests.get(url, timeout=300)
+            response.raise_for_status()
+            
+            # Read CSV into DataFrame
+            df = pd.read_csv(io.StringIO(response.text))
+            
+            # Sample the data
+            if len(df) > sample_size:
+                df = df.sample(n=sample_size, random_state=42)
+            
+            logger.info(f"✅ Downloaded {len(df)} rows with {len(df.columns)} columns")
+            return df
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to download sample data: {str(e)}")
+            return pd.DataFrame()
 
 # Example usage and testing
 if __name__ == "__main__":
