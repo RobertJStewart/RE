@@ -382,6 +382,110 @@ Implemented a three-phase dynamic abstraction system that makes critical columns
 - **Advanced Validation**: Add more sophisticated data type validation
 - **Multi-Source Support**: Extend to support additional data sources beyond Zillow
 
+## 🏗️ Data Connection Architecture Design (2025-10-05)
+
+### **Problem Solved**
+The current DataConnection system is hardcoded and doesn't support user-driven discovery of new data sources. Need a scalable architecture that allows users to add new data connections through the frontend while maintaining the existing ETL pipeline.
+
+### **Architecture Decisions Made**
+
+#### **1. Discovery Integration**
+- **Approach**: Modify existing `new_data_connection.py` script
+- **Process**: Synchronous - user waits for completion
+- **User Experience**: Deliver discovery results to user for review/editing before backend processing
+- **Implementation**: Add non-interactive mode to existing discovery script
+
+#### **2. ETL Trigger**
+- **Approach**: Background processing with user feedback
+- **Process**: Full ETL runs without interrupting frontend
+- **User Experience**: 
+  - Status bar shows progress of data creation
+  - On completion, ask user to refresh and load new data
+  - User can refresh immediately or wait until disconnection
+- **Implementation**: Asynchronous ETL with progress tracking
+
+#### **3. File Organization**
+- **Approach**: Current structure + metadata files only
+- **Structure**: Keep existing data/aggregations/statistics directories
+- **Metadata**: Add connection-specific metadata files in data_connections/ directory
+- **Naming**: Use descriptive filenames to associate metadata with connections
+
+#### **4. Update Frequency**
+- **Approach**: Multiple options available (future development)
+- **Immediate Requirement**: Add Data function must capture source data update frequency
+- **Frequency Discovery Methods**:
+  - User input
+  - Hosting page search
+  - Connection API queries
+  - Other methods (TBD)
+- **Auto-Updates**: Once frequency is known, update on that periodicity
+- **Future Options**: User-triggered, scheduled, hybrid, smart updates
+
+#### **5. Error Handling**
+- **Approach**: Graceful degradation with comprehensive logging
+- **Process**: Continue with partial data if possible
+- **Storage**: 
+  - Individual data objects store expected but unfound information
+  - Cross-reference file aggregates missing info across all connections
+- **Future Development**: Detailed error handling to be figured out later
+
+### **Proposed Architecture Components**
+
+#### **1. Data Connection Registry**
+```json
+// backend/dataconnections.json
+{
+  "timestamp": "2025-10-05T22:35:00.000000",
+  "version": "1.0",
+  "connections": {
+    "zillow_zhvi_all_homes_smoothed": {
+      "id": "zillow_zhvi_all_homes_smoothed",
+      "name": "Zillow ZHVI All Homes Smoothed",
+      "status": "active",
+      "metadata_file": "data_connections/zillow_zhvi_all_homes_smoothed/metadata.json",
+      "update_frequency": "monthly",
+      "last_updated": "2025-10-05T21:15:30.983809"
+    }
+  }
+}
+```
+
+#### **2. Individual Connection Metadata**
+```json
+// backend/data_connections/zillow_zhvi_all_homes_smoothed/metadata.json
+{
+  "connection_id": "zillow_zhvi_all_homes_smoothed",
+  "discovery_info": {
+    "user_input": { /* user provided information */ },
+    "discovered_metadata": { /* auto-discovered information */ }
+  },
+  "file_structure": { /* file paths and organization */ },
+  "missing_information": { /* expected but unfound data */ }
+}
+```
+
+#### **3. Frontend "Add Data" Workflow**
+1. User fills out form with data source information
+2. Frontend calls modified discovery script
+3. Discovery results presented to user for review/editing
+4. User confirms and triggers background ETL processing
+5. Status bar shows progress
+6. On completion, user chooses to refresh or wait
+
+### **Implementation Priority**
+1. **Phase 1**: Create registry structure and metadata files
+2. **Phase 2**: Modify discovery script for non-interactive mode
+3. **Phase 3**: Update ETL pipeline to register new connections
+4. **Phase 4**: Create frontend "Add Data" page
+5. **Phase 5**: Implement update mechanism for existing connections
+
+### **Key Benefits**
+- **User-Driven**: New data sources added through frontend interface
+- **Scalable**: Architecture supports unlimited data connections
+- **Maintainable**: Clear separation between discovery, processing, and display
+- **Flexible**: Multiple update frequency options for different data sources
+- **Robust**: Graceful error handling with comprehensive logging
+
 ## 🔧 Maintenance Tracking
 
 ### **Last Maintenance Check**: 2025-10-05
