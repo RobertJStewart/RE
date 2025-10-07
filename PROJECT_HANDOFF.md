@@ -228,3 +228,4 @@ python frontend_script.py --port 5000
 ---
 
 **Ready to continue with Phase 1: Create Registry Structure**
+

@@ -1,0 +1,247 @@
+{
+  "timestamp": "2025-10-06T22:37:38.730139",
+  "statistics_requested": [
+    "avg",
+    "median",
+    "q1",
+    "q3",
+    "min",
+    "max",
+    "std",
+    "count",
+    "p10",
+    "p25",
+    "p75",
+    "p90",
+    "p95",
+    "p99",
+    "skewness",
+    "kurtosis",
+    "coefficient_of_variation",
+    "range",
+    "interquartile_range",
+    "mad",
+    "var_95",
+    "var_99",
+    "linear_trend",
+    "trend_strength",
+    "volatility_trend",
+    "momentum_3m",
+    "momentum_6m",
+    "momentum_12m",
+    "positive_change_pct",
+    "above_median_pct",
+    "price_efficiency",
+    "percentile_rank",
+    "z_score",
+    "relative_strength"
+  ],
+  "statistics_calculated": [],
+  "statistics_failed": [
+    "q1",
+    "count",
+    "std",
+    "coefficient_of_variation",
+    "volatility_trend",
+    "momentum_12m",
+    "interquartile_range",
+    "percentile_rank",
+    "p90",
+    "p99",
+    "kurtosis",
+    "linear_trend",
+    "range",
+    "z_score",
+    "p75",
+    "p95",
+    "var_95",
+    "momentum_3m",
+    "var_99",
+    "positive_change_pct",
+    "relative_strength",
+    "mad",
+    "trend_strength",
+    "skewness",
+    "q3",
+    "momentum_6m",
+    "avg",
+    "price_efficiency",
+    "p10",
+    "median",
+    "max",
+    "p25",
+    "above_median_pct",
+    "min"
+  ],
+  "timeseries_requested": [],
+  "timeseries_calculated": [],
+  "timeseries_failed": [],
+  "geography_levels": [
+    "zip",
+    "state",
+    "state_region",
+    "region"
+  ],
+  "statistics_methods": {
+    "avg": {
+      "name": "Average",
+      "description": "Arithmetic mean of values"
+    },
+    "median": {
+      "name": "Median",
+      "description": "Middle value when sorted"
+    },
+    "q1": {
+      "name": "First Quartile",
+      "description": "25th percentile"
+    },
+    "q3": {
+      "name": "Third Quartile",
+      "description": "75th percentile"
+    },
+    "min": {
+      "name": "Minimum",
+      "description": "Smallest value"
+    },
+    "max": {
+      "name": "Maximum",
+      "description": "Largest value"
+    },
+    "std": {
+      "name": "Standard Deviation",
+      "description": "Measure of data spread"
+    },
+    "count": {
+      "name": "Count",
+      "description": "Number of data points"
+    },
+    "p10": {
+      "name": "10th Percentile",
+      "description": "Bottom 10% of values"
+    },
+    "p25": {
+      "name": "25th Percentile",
+      "description": "Bottom quartile"
+    },
+    "p75": {
+      "name": "75th Percentile",
+      "description": "Top quartile"
+    },
+    "p90": {
+      "name": "90th Percentile",
+      "description": "Top 10% of values"
+    },
+    "p95": {
+      "name": "95th Percentile",
+      "description": "Top 5% of values"
+    },
+    "p99": {
+      "name": "99th Percentile",
+      "description": "Top 1% of values"
+    },
+    "skewness": {
+      "name": "Skewness",
+      "description": "Measure of distribution asymmetry"
+    },
+    "kurtosis": {
+      "name": "Kurtosis",
+      "description": "Measure of distribution tail heaviness"
+    },
+    "coefficient_of_variation": {
+      "name": "Coefficient of Variation",
+      "description": "Relative volatility (std/mean)"
+    },
+    "range": {
+      "name": "Range",
+      "description": "Max - Min"
+    },
+    "interquartile_range": {
+      "name": "IQR",
+      "description": "Q3 - Q1"
+    },
+    "mad": {
+      "name": "Mean Absolute Deviation",
+      "description": "Average absolute deviation from mean"
+    },
+    "var_95": {
+      "name": "Value at Risk (95%)",
+      "description": "95th percentile value"
+    },
+    "var_99": {
+      "name": "Value at Risk (99%)",
+      "description": "99th percentile value"
+    },
+    "linear_trend": {
+      "name": "Linear Trend",
+      "description": "Slope of linear regression over time"
+    },
+    "trend_strength": {
+      "name": "Trend Strength",
+      "description": "R-squared of linear trend"
+    },
+    "volatility_trend": {
+      "name": "Volatility Trend",
+      "description": "Change in volatility over time"
+    },
+    "momentum_3m": {
+      "name": "3-Month Momentum",
+      "description": "Change over last 3 months"
+    },
+    "momentum_6m": {
+      "name": "6-Month Momentum",
+      "description": "Change over last 6 months"
+    },
+    "momentum_12m": {
+      "name": "12-Month Momentum",
+      "description": "Change over last 12 months"
+    },
+    "positive_change_pct": {
+      "name": "% Positive Changes",
+      "description": "Percentage of positive period-over-period changes"
+    },
+    "above_median_pct": {
+      "name": "% Above Median",
+      "description": "Percentage of values above overall median"
+    },
+    "price_efficiency": {
+      "name": "Price Efficiency",
+      "description": "How close values are to trend line"
+    },
+    "percentile_rank": {
+      "name": "Percentile Rank",
+      "description": "Current value percentile within historical range"
+    },
+    "z_score": {
+      "name": "Z-Score",
+      "description": "Standard deviations from mean"
+    },
+    "relative_strength": {
+      "name": "Relative Strength",
+      "description": "Performance vs benchmark"
+    }
+  },
+  "timeseries_methods": {
+    "pop": {
+      "name": "Period over Period",
+      "description": "Current period vs previous period"
+    },
+    "yoy": {
+      "name": "Year over Year",
+      "description": "Current period vs same period last year"
+    },
+    "mom": {
+      "name": "Month over Month",
+      "description": "Current month vs previous month"
+    },
+    "qoq": {
+      "name": "Quarter over Quarter",
+      "description": "Current quarter vs previous quarter"
+    }
+  },
+  "graceful_degradation": {
+    "enabled": true,
+    "description": "Statistics that failed to calculate are omitted from the JSON output",
+    "frontend_handling": "Check metadata to see which statistics are available before consuming data"
+  },
+  "results_summary": {}
+}

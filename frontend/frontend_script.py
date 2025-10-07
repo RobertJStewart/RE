@@ -45,10 +45,13 @@ except ImportError:
 
 try:
     from data_connection import REDataConnection
+    from connection_manager import ConnectionManager
     DATA_CONNECTION_AVAILABLE = True
+    CONNECTION_MANAGER_AVAILABLE = True
 except ImportError as e:
-    print(f"⚠️  Warning: Could not import DataConnection: {e}")
+    print(f"⚠️  Warning: Could not import DataConnection or ConnectionManager: {e}")
     DATA_CONNECTION_AVAILABLE = False
+    CONNECTION_MANAGER_AVAILABLE = False
 
 # Configure logging
 log_dir = Path(__file__).parent.parent / "logs"
@@ -78,8 +81,10 @@ class FrontendServer:
                         static_folder='static')
         CORS(self.app)
         
-        # Initialize data connection
+        # Initialize data connection and connection manager
         self.data_connection = None
+        self.connection_manager = None
+        
         if DATA_CONNECTION_AVAILABLE:
             try:
                 self.data_connection = REDataConnection()
@@ -87,6 +92,15 @@ class FrontendServer:
             except Exception as e:
                 logger.error(f"❌ Failed to initialize DataConnection: {e}")
                 self.data_connection = None
+        
+        if CONNECTION_MANAGER_AVAILABLE:
+            try:
+                registry_path = Path(__file__).parent.parent / "backend" / "dataconnections.json"
+                self.connection_manager = ConnectionManager(registry_path)
+                logger.info("✅ ConnectionManager initialized successfully")
+            except Exception as e:
+                logger.error(f"❌ Failed to initialize ConnectionManager: {e}")
+                self.connection_manager = None
         
         # Setup routes
         self.setup_routes()
@@ -317,12 +331,317 @@ class FrontendServer:
                     'error': str(e)
                 })
         
+        # ConnectionManager API endpoints
+        @self.app.route('/api/connections')
+        def get_connections():
+            """Get connections with optional filtering."""
+            try:
+                if not self.connection_manager:
+                    return jsonify({
+                        'success': False,
+                        'error': 'ConnectionManager not available',
+                        'connections': []
+                    })
+                
+                # Get query parameters for filtering
+                filters = {}
+                for key in ['data_source', 'data_type', 'sub_type', 'geography', 'status']:
+                    if request.args.get(key):
+                        filters[key] = request.args.get(key)
+                
+                # Get connections with filters
+                connections = self.connection_manager.get_connections_by_filter(filters)
+                
+                return jsonify({
+                    'success': True,
+                    'connections': connections,
+                    'total_count': len(connections),
+                    'filters_applied': filters,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"❌ Error getting connections: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                })
+        
+        @self.app.route('/api/connections/filter-options')
+        def get_filter_options():
+            """Get available filter options for connections."""
+            try:
+                if not self.connection_manager:
+                    return jsonify({
+                        'success': False,
+                        'error': 'ConnectionManager not available',
+                        'filter_options': {}
+                    })
+                
+                filter_options = self.connection_manager.get_hierarchical_filter_options()
+                
+                return jsonify({
+                    'success': True,
+                    'filter_options': filter_options,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"❌ Error getting filter options: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                })
+        
+        @self.app.route('/api/connections/hierarchy')
+        def get_connections_hierarchy():
+            """Get hierarchical breakdown of connections."""
+            try:
+                if not self.connection_manager:
+                    return jsonify({
+                        'success': False,
+                        'error': 'ConnectionManager not available',
+                        'hierarchy': {}
+                    })
+                
+                hierarchy = self.connection_manager.get_hierarchical_breakdown()
+                
+                return jsonify({
+                    'success': True,
+                    'hierarchy': hierarchy,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"❌ Error getting hierarchy: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                })
+        
+        @self.app.route('/api/connections/<connection_id>')
+        def get_connection(connection_id):
+            """Get specific connection by ID."""
+            try:
+                if not self.connection_manager:
+                    return jsonify({
+                        'success': False,
+                        'error': 'ConnectionManager not available'
+                    })
+                
+                connection = self.connection_manager.get_connection(connection_id)
+                
+                if not connection:
+                    return jsonify({
+                        'success': False,
+                        'error': f'Connection {connection_id} not found'
+                    })
+                
+                return jsonify({
+                    'success': True,
+                    'connection': connection,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"❌ Error getting connection {connection_id}: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                })
+        
+        @self.app.route('/api/connections/complexity')
+        def get_complexity_analysis():
+            """Get complexity analysis of the connection registry."""
+            try:
+                if not self.connection_manager:
+                    return jsonify({
+                        'success': False,
+                        'error': 'ConnectionManager not available'
+                    })
+                
+                complexity = self.connection_manager.analyze_complexity()
+                
+                return jsonify({
+                    'success': True,
+                    'complexity': complexity,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"❌ Error getting complexity analysis: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                })
+        
+        @self.app.route('/api/discover-connection', methods=['POST'])
+        def discover_connection():
+            """Discover and validate a new data connection."""
+            try:
+                if not self.connection_manager:
+                    return jsonify({
+                        'success': False,
+                        'error': 'ConnectionManager not available'
+                    })
+                
+                data = request.get_json()
+                
+                # Validate required fields
+                required_fields = ['name', 'data_source', 'data_type', 'geography', 'url']
+                for field in required_fields:
+                    if field not in data or not data[field]:
+                        return jsonify({
+                            'success': False,
+                            'error': f'Missing required field: {field}'
+                        })
+                
+                # Create connection metadata
+                from connection_manager import ConnectionMetadata
+                connection = ConnectionMetadata(
+                    id=f"{data['data_source']}_{data['data_type']}_{data['geography']}",
+                    name=data['name'],
+                    data_source=data['data_source'],
+                    data_type=data['data_type'],
+                    sub_type=data.get('sub_type', 'default'),
+                    geography=data['geography'],
+                    update_frequency=data.get('update_frequency', 'monthly'),
+                    status='pending',
+                    created=datetime.now().isoformat(),
+                    last_updated=datetime.now().isoformat(),
+                    last_tested=None,
+                    test_status='pending',
+                    backup_version=None,
+                    flexible_metadata={
+                        'url': data['url'],
+                        'description': data.get('description', ''),
+                        'discovered_at': datetime.now().isoformat()
+                    }
+                )
+                
+                # Attempt auto-discovery
+                discovery_result = self.connection_manager._auto_discover_metadata(connection)
+                
+                if discovery_result:
+                    # Auto-discovery successful
+                    connection.flexible_metadata.update(discovery_result)
+                    connection.test_status = 'passed'
+                    
+                    return jsonify({
+                        'success': True,
+                        'discovery_status': 'auto_discovered',
+                        'connection': {
+                            'id': connection.id,
+                            'name': connection.name,
+                            'data_source': connection.data_source,
+                            'data_type': connection.data_type,
+                            'sub_type': connection.sub_type,
+                            'geography': connection.geography,
+                            'update_frequency': connection.update_frequency,
+                            'flexible_metadata': connection.flexible_metadata
+                        },
+                        'message': 'Connection auto-discovered successfully. Ready to add to registry.',
+                        'timestamp': datetime.now().isoformat()
+                    })
+                else:
+                    # Auto-discovery failed, return basic validation
+                    basic_validation = self.connection_manager._basic_metadata_validation(connection)
+                    
+                    return jsonify({
+                        'success': True,
+                        'discovery_status': 'basic_validation',
+                        'connection': {
+                            'id': connection.id,
+                            'name': connection.name,
+                            'data_source': connection.data_source,
+                            'data_type': connection.data_type,
+                            'sub_type': connection.sub_type,
+                            'geography': connection.geography,
+                            'update_frequency': connection.update_frequency,
+                            'flexible_metadata': connection.flexible_metadata
+                        },
+                        'validation': basic_validation,
+                        'message': 'Auto-discovery failed. Basic validation completed. Manual review required.',
+                        'timestamp': datetime.now().isoformat()
+                    })
+                
+            except Exception as e:
+                logger.error(f"❌ Error discovering connection: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                })
+        
+        @self.app.route('/api/connections', methods=['POST'])
+        def add_connection():
+            """Add a new connection to the registry."""
+            try:
+                if not self.connection_manager:
+                    return jsonify({
+                        'success': False,
+                        'error': 'ConnectionManager not available'
+                    })
+                
+                data = request.get_json()
+                
+                # Validate required fields
+                required_fields = ['name', 'data_source', 'data_type', 'geography']
+                for field in required_fields:
+                    if field not in data or not data[field]:
+                        return jsonify({
+                            'success': False,
+                            'error': f'Missing required field: {field}'
+                        })
+                
+                # Create connection metadata
+                from connection_manager import ConnectionMetadata
+                connection = ConnectionMetadata(
+                    id=f"{data['data_source']}_{data['data_type']}_{data['geography']}",
+                    name=data['name'],
+                    data_source=data['data_source'],
+                    data_type=data['data_type'],
+                    sub_type=data.get('sub_type', 'default'),
+                    geography=data['geography'],
+                    update_frequency=data.get('update_frequency', 'monthly'),
+                    status='active',
+                    created=datetime.now().isoformat(),
+                    last_updated=datetime.now().isoformat(),
+                    last_tested=datetime.now().isoformat(),
+                    test_status='passed',
+                    backup_version=None,
+                    flexible_metadata=data.get('flexible_metadata', {})
+                )
+                
+                # Add connection to registry
+                success = self.connection_manager.add_connection(connection, auto_discover=True)
+                
+                if success:
+                    return jsonify({
+                        'success': True,
+                        'message': f'Connection {connection.name} added successfully',
+                        'connection_id': connection.id,
+                        'timestamp': datetime.now().isoformat()
+                    })
+                else:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Failed to add connection to registry'
+                    })
+                
+            except Exception as e:
+                logger.error(f"❌ Error adding connection: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                })
+        
         @self.app.route('/api/health')
         def health_check():
             """Health check endpoint."""
             return jsonify({
                 'status': 'healthy',
                 'data_connection_available': DATA_CONNECTION_AVAILABLE and self.data_connection is not None,
+                'connection_manager_available': CONNECTION_MANAGER_AVAILABLE and self.connection_manager is not None,
                 'timestamp': datetime.now().isoformat()
             })
     
@@ -336,6 +655,15 @@ class FrontendServer:
         logger.info("   GET  /api/statistics/<source_id>/<geography> - Get statistics")
         logger.info("   POST /api/add-data-source  - Add new data source")
         logger.info("   GET  /api/health          - Health check")
+        logger.info("")
+        logger.info("🔗 ConnectionManager API endpoints:")
+        logger.info("   GET  /api/connections     - Get connections with filtering")
+        logger.info("   GET  /api/connections/filter-options - Get filter options")
+        logger.info("   GET  /api/connections/hierarchy - Get hierarchical breakdown")
+        logger.info("   GET  /api/connections/<id> - Get specific connection")
+        logger.info("   GET  /api/connections/complexity - Get complexity analysis")
+        logger.info("   POST /api/discover-connection - Discover new connection")
+        logger.info("   POST /api/connections     - Add new connection to registry")
         
         try:
             self.app.run(host=self.host, port=self.port, debug=self.debug)

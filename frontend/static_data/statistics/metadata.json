@@ -1,0 +1,37 @@
+{
+  "pipeline_info": {
+    "version": "1.0.0",
+    "last_run": "2025-10-06T22:37:38.737587",
+    "base_path": "/Users/robertstewart/Documents/Projects/RE"
+  },
+  "data_sources": {
+    "zillow_zhvi": "Zillow Home Value Index",
+    "zillow_zori": "Zillow Rent Index"
+  },
+  "geographic_levels": [
+    "regions",
+    "state_regions",
+    "states",
+    "zipcodes"
+  ],
+  "statistical_methods": [
+    "average",
+    "median",
+    "maximum",
+    "minimum",
+    "count",
+    "standard_deviation"
+  ],
+  "output_files": {
+    "aggregations": {
+      "regions": "regions/regions.json",
+      "state_regions": "state_regions/state_regions.json",
+      "states": "states/states.json",
+      "zipcodes": "zipcodes/zipcodes.geojson"
+    },
+    "statistics": {
+      "summary": "summary.json",
+      "time_series": "time_series.json"
+    }
+  }
+}
