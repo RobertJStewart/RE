@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RE Market Tool - Static Mode</title>
+    <title>RE Market Tool - Data Explorer</title>
     <style>
         * {
             margin: 0;
@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -27,7 +27,7 @@
         .header {
             text-align: center;
             color: white;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
 
         .header h1 {
@@ -37,7 +37,7 @@
         }
 
         .header p {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             opacity: 0.9;
         }
 
@@ -51,31 +51,35 @@
             color: white;
         }
 
-        .mode-banner h3 {
-            margin-bottom: 10px;
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-bottom: 30px;
         }
 
-        .mode-banner p {
-            opacity: 0.9;
-        }
-
-        .card {
+        .sidebar {
             background: white;
             border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
+            padding: 25px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
+            height: fit-content;
         }
 
-        .card:hover {
-            transform: translateY(-5px);
+        .data-viewer {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            min-height: 600px;
         }
 
-        .card h2 {
-            color: #667eea;
+        .section-title {
+            font-size: 1.5rem;
             margin-bottom: 20px;
-            font-size: 1.8rem;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
         }
 
         .stats-grid {
@@ -86,91 +90,207 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
+            background: white;
+            border-radius: 15px;
             padding: 20px;
-            border-radius: 10px;
             text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
         }
 
-        .stat-card h3 {
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
             font-size: 2rem;
+            font-weight: bold;
+            color: #3498db;
             margin-bottom: 5px;
         }
 
-        .stat-card p {
-            opacity: 0.9;
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
         }
 
-        .data-sources {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+        .selector-group {
+            margin-bottom: 20px;
         }
 
-        .data-source {
+        .selector-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .selector-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+            transition: border-color 0.3s ease;
+        }
+
+        .selector-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .dataset-info {
             background: #f8f9fa;
-            border: 1px solid #e9ecef;
             border-radius: 10px;
-            padding: 20px;
-            transition: all 0.3s ease;
+            padding: 15px;
+            margin-bottom: 20px;
         }
 
-        .data-source:hover {
-            border-color: #667eea;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
-        }
-
-        .data-source h4 {
-            color: #667eea;
+        .dataset-info h3 {
+            color: #2c3e50;
             margin-bottom: 10px;
         }
 
-        .data-source .meta {
-            font-size: 0.9rem;
-            color: #666;
+        .dataset-info p {
+            color: #7f8c8d;
             margin-bottom: 5px;
         }
 
-        .data-source .description {
-            font-size: 0.9rem;
-            color: #555;
-            margin-top: 10px;
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .data-table th {
+            background: #3498db;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
         }
 
         .loading {
             text-align: center;
             padding: 40px;
-            color: #666;
+            color: #7f8c8d;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #3498db;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         .error {
-            background: #f8d7da;
-            color: #721c24;
+            background: #e74c3c;
+            color: white;
             padding: 15px;
             border-radius: 10px;
-            margin-bottom: 20px;
+            margin: 20px 0;
         }
 
-        .footer {
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            gap: 10px;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid #3498db;
+            background: white;
+            color: #3498db;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #3498db;
+            color: white;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination .current-page {
+            background: #3498db;
+            color: white;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .filter-tag {
+            background: #3498db;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .filter-tag:hover {
+            background: #2980b9;
+        }
+
+        .no-data {
             text-align: center;
-            color: white;
-            margin-top: 40px;
-            opacity: 0.8;
-        }
-
-        .footer a {
-            color: white;
-            text-decoration: none;
-        }
-
-        .footer a:hover {
-            text-decoration: underline;
+            padding: 40px;
+            color: #7f8c8d;
+            font-style: italic;
         }
 
         @media (max-width: 768px) {
-            .container {
-                padding: 10px;
+            .main-content {
+                grid-template-columns: 1fr;
             }
             
             .header h1 {
@@ -178,7 +298,7 @@
             }
             
             .stats-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             }
         }
     </style>
@@ -187,247 +307,327 @@
     <div class="container">
         <div class="header">
             <h1>🏠 RE Market Tool</h1>
-            <p>Real Estate Market Analysis & Data Visualization</p>
+            <p>Interactive Data Explorer - Static Mode</p>
         </div>
 
         <div class="mode-banner">
             <h3>📊 Static Mode</h3>
             <p>This is the static version of the RE Market Tool, optimized for GitHub Pages deployment. 
-               For full functionality including adding new data sources, use the dynamic version.</p>
+            Browse and explore real estate market data from 39 available data sources.</p>
         </div>
 
-        <div id="loading" class="loading">
-            <h3>🔄 Loading data...</h3>
-            <p>Please wait while we load the market data.</p>
-        </div>
-
-        <div id="error" class="error" style="display: none;">
-            <h3>❌ Error Loading Data</h3>
-            <p id="error-message"></p>
-        </div>
-
-        <div id="content" style="display: none;">
-            <!-- Statistics Overview -->
-            <div class="card">
-                <h2>📈 Market Overview</h2>
-                <div class="stats-grid" id="stats-grid">
-                    <!-- Stats will be populated by JavaScript -->
-                </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="total-sources">-</div>
+                <div class="stat-label">Data Sources</div>
             </div>
-
-            <!-- Data Sources -->
-            <div class="card">
-                <h2>🗂️ Available Data Sources</h2>
-                <div class="data-sources" id="data-sources">
-                    <!-- Data sources will be populated by JavaScript -->
-                </div>
+            <div class="stat-card">
+                <div class="stat-number" id="total-connections">-</div>
+                <div class="stat-label">Connections</div>
             </div>
-
-            <!-- Aggregations -->
-            <div class="card">
-                <h2>🗺️ Geographic Data</h2>
-                <div id="aggregations-info">
-                    <!-- Aggregation info will be populated by JavaScript -->
-                </div>
+            <div class="stat-card">
+                <div class="stat-number" id="data-types">-</div>
+                <div class="stat-label">Data Types</div>
             </div>
-
-            <!-- Statistics -->
-            <div class="card">
-                <h2>📊 Statistical Analysis</h2>
-                <div id="statistics-info">
-                    <!-- Statistics info will be populated by JavaScript -->
-                </div>
+            <div class="stat-card">
+                <div class="stat-number" id="geographies">-</div>
+                <div class="stat-label">Geographies</div>
             </div>
         </div>
 
-        <div class="footer">
-            <p>
-                <a href="#" onclick="showFullVersion()">🚀 Try the Full Version</a> | 
-                <a href="https://github.com/your-repo" target="_blank">📁 View on GitHub</a>
-            </p>
-            <p>Last updated: <span id="last-updated"></span></p>
+        <div class="main-content">
+            <div class="sidebar">
+                <h2 class="section-title">🔍 Data Explorer</h2>
+                
+                <div class="selector-group">
+                    <label for="data-source-select">Data Source:</label>
+                    <select id="data-source-select">
+                        <option value="">All Data Sources</option>
+                    </select>
+                </div>
+
+                <div class="selector-group">
+                    <label for="data-type-select">Data Type:</label>
+                    <select id="data-type-select">
+                        <option value="">All Data Types</option>
+                    </select>
+                </div>
+
+                <div class="selector-group">
+                    <label for="geography-select">Geography:</label>
+                    <select id="geography-select">
+                        <option value="">All Geographies</option>
+                    </select>
+                    </select>
+                </div>
+
+                <div class="selector-group">
+                    <label for="dataset-select">Select Dataset:</label>
+                    <select id="dataset-select">
+                        <option value="">Choose a dataset to explore...</option>
+                    </select>
+                </div>
+
+                <div class="dataset-info" id="dataset-info" style="display: none;">
+                    <h3 id="dataset-name">Dataset Name</h3>
+                    <p><strong>Source:</strong> <span id="dataset-source">-</span></p>
+                    <p><strong>Type:</strong> <span id="dataset-type">-</span></p>
+                    <p><strong>Geography:</strong> <span id="dataset-geography">-</span></p>
+                    <p><strong>Frequency:</strong> <span id="dataset-frequency">-</span></p>
+                    <p><strong>Quality:</strong> <span id="dataset-quality">-</span></p>
+                    <p><strong>Description:</strong> <span id="dataset-description">-</span></p>
+                </div>
+            </div>
+
+            <div class="data-viewer">
+                <h2 class="section-title">📊 Data Viewer</h2>
+                
+                <div id="viewer-content">
+                    <div class="loading">Loading data...</div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // Global variables
         let dataSources = [];
-        let connections = {};
-        let aggregations = {};
-        let statistics = {};
+        let connections = [];
+        let currentDataset = null;
+        let currentPage = 1;
+        const itemsPerPage = 10;
 
-        // Load all static data
-        async function loadStaticData() {
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', async function() {
             try {
-                console.log('Loading static data...');
-                
+                await loadData();
+                setupEventListeners();
+                updateStats();
+                populateSelectors();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showError('Failed to load data. Please refresh the page.');
+            }
+        });
+
+        async function loadData() {
+            try {
                 // Load data sources
                 const dataSourcesResponse = await fetch('static_data/data_sources.json');
-                if (!dataSourcesResponse.ok) throw new Error('Failed to load data sources');
                 const dataSourcesData = await dataSourcesResponse.json();
                 dataSources = dataSourcesData.data_sources || [];
-                
+
                 // Load connections
                 const connectionsResponse = await fetch('static_data/connections.json');
-                if (!connectionsResponse.ok) throw new Error('Failed to load connections');
                 const connectionsData = await connectionsResponse.json();
-                connections = connectionsData.connections || {};
-                
-                // Load aggregations metadata
-                const aggregationsResponse = await fetch('static_data/aggregations/aggregation_metadata.json');
-                if (aggregationsResponse.ok) {
-                    aggregations = await aggregationsResponse.json();
-                }
-                
-                // Load statistics metadata
-                const statisticsResponse = await fetch('static_data/statistics/metadata.json');
-                if (statisticsResponse.ok) {
-                    statistics = await statisticsResponse.json();
-                }
-                
-                console.log('Data loaded successfully:', {
-                    dataSources: dataSources.length,
-                    connections: Object.keys(connections).length,
-                    aggregations: Object.keys(aggregations).length,
-                    statistics: Object.keys(statistics).length
-                });
-                
-                // Hide loading, show content
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('content').style.display = 'block';
-                
-                // Populate the page
-                populateStats();
-                populateDataSources();
-                populateAggregations();
-                populateStatistics();
-                updateLastUpdated();
-                
+                connections = Object.values(connectionsData.connections || {});
+
+                console.log('Loaded data sources:', dataSources.length);
+                console.log('Loaded connections:', connections.length);
             } catch (error) {
-                console.error('Error loading static data:', error);
-                showError(error.message);
+                console.error('Error loading data:', error);
+                throw error;
             }
+        }
+
+        function updateStats() {
+            document.getElementById('total-sources').textContent = dataSources.length;
+            document.getElementById('total-connections').textContent = connections.length;
+            
+            const dataTypes = new Set(dataSources.map(ds => ds.data_type));
+            document.getElementById('data-types').textContent = dataTypes.size;
+            
+            const geographies = new Set(dataSources.map(ds => ds.geography));
+            document.getElementById('geographies').textContent = geographies.size;
+        }
+
+        function populateSelectors() {
+            const dataSourceSelect = document.getElementById('data-source-select');
+            const dataTypeSelect = document.getElementById('data-type-select');
+            const geographySelect = document.getElementById('geography-select');
+            const datasetSelect = document.getElementById('dataset-select');
+
+            // Populate data source selector
+            const dataSources = new Set(connections.map(c => c.data_source));
+            dataSources.forEach(source => {
+                const option = document.createElement('option');
+                option.value = source;
+                option.textContent = source.charAt(0).toUpperCase() + source.slice(1);
+                dataSourceSelect.appendChild(option);
+            });
+
+            // Populate data type selector
+            const dataTypes = new Set(connections.map(c => c.data_type));
+            dataTypes.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type.toUpperCase();
+                dataTypeSelect.appendChild(option);
+            });
+
+            // Populate geography selector
+            const geographies = new Set(connections.map(c => c.geography));
+            geographies.forEach(geo => {
+                const option = document.createElement('option');
+                option.value = geo;
+                option.textContent = geo.charAt(0).toUpperCase() + geo.slice(1);
+                geographySelect.appendChild(option);
+            });
+
+            // Populate dataset selector
+            connections.forEach(connection => {
+                const option = document.createElement('option');
+                option.value = connection.id;
+                option.textContent = connection.name;
+                datasetSelect.appendChild(option);
+            });
+        }
+
+        function setupEventListeners() {
+            document.getElementById('data-source-select').addEventListener('change', filterDatasets);
+            document.getElementById('data-type-select').addEventListener('change', filterDatasets);
+            document.getElementById('geography-select').addEventListener('change', filterDatasets);
+            document.getElementById('dataset-select').addEventListener('change', selectDataset);
+        }
+
+        function filterDatasets() {
+            const dataSource = document.getElementById('data-source-select').value;
+            const dataType = document.getElementById('data-type-select').value;
+            const geography = document.getElementById('geography-select').value;
+
+            const datasetSelect = document.getElementById('dataset-select');
+            const options = datasetSelect.querySelectorAll('option');
+            
+            options.forEach(option => {
+                if (option.value === '') return; // Keep the placeholder option
+                
+                const connection = connections.find(c => c.id === option.value);
+                if (!connection) return;
+
+                const matchesSource = !dataSource || connection.data_source === dataSource;
+                const matchesType = !dataType || connection.data_type === dataType;
+                const matchesGeography = !geography || connection.geography === geography;
+
+                option.style.display = (matchesSource && matchesType && matchesGeography) ? 'block' : 'none';
+            });
+        }
+
+        function selectDataset() {
+            const datasetId = document.getElementById('dataset-select').value;
+            if (!datasetId) {
+                document.getElementById('dataset-info').style.display = 'none';
+                showNoDataSelected();
+                return;
+            }
+
+            const connection = connections.find(c => c.id === datasetId);
+            if (!connection) return;
+
+            currentDataset = connection;
+            updateDatasetInfo(connection);
+            showDatasetData(connection);
+        }
+
+        function updateDatasetInfo(connection) {
+            document.getElementById('dataset-name').textContent = connection.name;
+            document.getElementById('dataset-source').textContent = connection.data_source;
+            document.getElementById('dataset-type').textContent = connection.data_type;
+            document.getElementById('dataset-geography').textContent = connection.geography;
+            document.getElementById('dataset-frequency').textContent = connection.update_frequency;
+            document.getElementById('dataset-quality').textContent = connection.flexible_metadata?.data_quality || 'Unknown';
+            document.getElementById('dataset-description').textContent = connection.flexible_metadata?.description || 'No description available';
+            
+            document.getElementById('dataset-info').style.display = 'block';
+        }
+
+        function showDatasetData(connection) {
+            const viewerContent = document.getElementById('viewer-content');
+            
+            // For now, show connection details as a table
+            // In a real implementation, this would load actual data files
+            const html = `
+                <div class="dataset-info">
+                    <h3>📋 Dataset Details</h3>
+                    <p><strong>ID:</strong> ${connection.id}</p>
+                    <p><strong>Status:</strong> <span style="color: ${connection.status === 'active' ? 'green' : 'orange'}">${connection.status}</span></p>
+                    <p><strong>Created:</strong> ${new Date(connection.created).toLocaleDateString()}</p>
+                    <p><strong>Last Updated:</strong> ${new Date(connection.last_updated).toLocaleDateString()}</p>
+                    <p><strong>Test Status:</strong> <span style="color: ${connection.test_status === 'passed' ? 'green' : 'red'}">${connection.test_status}</span></p>
+                </div>
+
+                <h3>🔧 Connection Methods</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>URL</th>
+                            <th>Format</th>
+                            <th>Authentication</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${(connection.flexible_metadata?.connection_methods || []).map(method => `
+                            <tr>
+                                <td>${method.method}</td>
+                                <td><a href="${method.url}" target="_blank">${method.url}</a></td>
+                                <td>${method.format}</td>
+                                <td>${method.authentication}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+
+                <h3>📊 Critical Columns</h3>
+                <div class="filter-tags">
+                    ${(connection.flexible_metadata?.critical_columns || []).map(col => `
+                        <span class="filter-tag">${col}</span>
+                    `).join('')}
+                </div>
+
+                <h3>📅 Date Columns (Sample)</h3>
+                <div class="filter-tags">
+                    ${(connection.flexible_metadata?.date_columns || []).slice(0, 10).map(col => `
+                        <span class="filter-tag">${col}</span>
+                    `).join('')}
+                    ${(connection.flexible_metadata?.date_columns || []).length > 10 ? 
+                        `<span class="filter-tag">+${(connection.flexible_metadata?.date_columns || []).length - 10} more</span>` : ''}
+                </div>
+
+                <div class="dataset-info">
+                    <h3>ℹ️ Additional Information</h3>
+                    <p><strong>Coverage:</strong> ${connection.flexible_metadata?.coverage || 'Unknown'}</p>
+                    <p><strong>Unit:</strong> ${connection.flexible_metadata?.unit || 'Unknown'}</p>
+                    <p><strong>Date Range:</strong> ${connection.flexible_metadata?.date_range || 'Unknown'}</p>
+                    <p><strong>Typical Row Count:</strong> ${connection.flexible_metadata?.typical_row_count || 'Unknown'}</p>
+                    <p><strong>Typical Column Count:</strong> ${connection.flexible_metadata?.typical_column_count || 'Unknown'}</p>
+                </div>
+            `;
+            
+            viewerContent.innerHTML = html;
+        }
+
+        function showNoDataSelected() {
+            const viewerContent = document.getElementById('viewer-content');
+            viewerContent.innerHTML = `
+                <div class="no-data">
+                    <h3>🔍 Select a Dataset</h3>
+                    <p>Choose a dataset from the dropdown to explore its details and metadata.</p>
+                    <p>Use the filters above to narrow down your selection by data source, type, or geography.</p>
+                </div>
+            `;
         }
 
         function showError(message) {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('error').style.display = 'block';
-            document.getElementById('error-message').textContent = message;
-        }
-
-        function populateStats() {
-            const statsGrid = document.getElementById('stats-grid');
-            
-            const stats = [
-                {
-                    title: 'Total Data Sources',
-                    value: dataSources.length,
-                    icon: '📊'
-                },
-                {
-                    title: 'Active Connections',
-                    value: dataSources.filter(ds => ds.status === 'active').length,
-                    icon: '✅'
-                },
-                {
-                    title: 'Geographic Levels',
-                    value: new Set(dataSources.map(ds => ds.geography)).size,
-                    icon: '🗺️'
-                },
-                {
-                    title: 'Data Types',
-                    value: new Set(dataSources.map(ds => ds.data_type)).size,
-                    icon: '📈'
-                }
-            ];
-            
-            statsGrid.innerHTML = stats.map(stat => `
-                <div class="stat-card">
-                    <h3>${stat.icon} ${stat.value}</h3>
-                    <p>${stat.title}</p>
+            const viewerContent = document.getElementById('viewer-content');
+            viewerContent.innerHTML = `
+                <div class="error">
+                    <h3>❌ Error</h3>
+                    <p>${message}</p>
                 </div>
-            `).join('');
-        }
-
-        function populateDataSources() {
-            const dataSourcesContainer = document.getElementById('data-sources');
-            
-            if (dataSources.length === 0) {
-                dataSourcesContainer.innerHTML = '<p>No data sources available.</p>';
-                return;
-            }
-            
-            dataSourcesContainer.innerHTML = dataSources.map(ds => `
-                <div class="data-source">
-                    <h4>${ds.name}</h4>
-                    <div class="meta">
-                        <strong>Source:</strong> ${ds.data_source} | 
-                        <strong>Type:</strong> ${ds.data_type} | 
-                        <strong>Geography:</strong> ${ds.geography}
-                    </div>
-                    <div class="meta">
-                        <strong>Update Frequency:</strong> ${ds.update_frequency} | 
-                        <strong>Status:</strong> ${ds.status}
-                    </div>
-                    ${ds.description ? `<div class="description">${ds.description}</div>` : ''}
-                </div>
-            `).join('');
-        }
-
-        function populateAggregations() {
-            const aggregationsInfo = document.getElementById('aggregations-info');
-            
-            if (Object.keys(aggregations).length === 0) {
-                aggregationsInfo.innerHTML = '<p>No aggregation data available.</p>';
-                return;
-            }
-            
-            aggregationsInfo.innerHTML = `
-                <p><strong>Available Geographic Levels:</strong></p>
-                <ul>
-                    <li>Regions: ${aggregations.regions || 'N/A'}</li>
-                    <li>States: ${aggregations.states || 'N/A'}</li>
-                    <li>ZIP Codes: ${aggregations.zipcodes || 'N/A'}</li>
-                    <li>State Regions: ${aggregations.state_regions || 'N/A'}</li>
-                </ul>
-                <p><em>Data files are available in the static_data/aggregations/ directory.</em></p>
             `;
         }
 
-        function populateStatistics() {
-            const statisticsInfo = document.getElementById('statistics-info');
-            
-            if (Object.keys(statistics).length === 0) {
-                statisticsInfo.innerHTML = '<p>No statistics data available.</p>';
-                return;
-            }
-            
-            statisticsInfo.innerHTML = `
-                <p><strong>Available Statistics:</strong></p>
-                <ul>
-                    <li>Basic Statistics: Average, Median, Min, Max, Standard Deviation</li>
-                    <li>Percentiles: P10, P25, P75, P90, P95, P99</li>
-                    <li>Distribution: Skewness, Kurtosis</li>
-                    <li>Volatility: Coefficient of Variation, Range, IQR, MAD, VaR</li>
-                    <li>Trends: Linear Trend, Trend Strength, Volatility Trend</li>
-                    <li>Momentum: 3-month, 6-month, 12-month momentum</li>
-                    <li>Market Health: Positive Change %, Above Median %, Price Efficiency</li>
-                </ul>
-                <p><em>Statistical data is available in the static_data/statistics/ directory.</em></p>
-            `;
-        }
-
-        function updateLastUpdated() {
-            const lastUpdated = document.getElementById('last-updated');
-            lastUpdated.textContent = new Date().toLocaleString();
-        }
-
-        function showFullVersion() {
-            alert('The full version with dynamic functionality is available when running the Flask server.\n\nTo access the full version:\n1. Run: python frontend/frontend_script.py\n2. Visit: http://localhost:5000\n\nFeatures include:\n- Add new data sources\n- Manage connections\n- Trigger ETL processes\n- Real-time data updates');
-        }
-
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', loadStaticData);
+        // Initialize with no data selected message
+        showNoDataSelected();
     </script>
 </body>
 </html>
