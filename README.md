@@ -4,10 +4,12 @@ A comprehensive real estate market analysis tool with **hybrid architecture** su
 
 ## 🎯 **Current Status (2025-10-06)**
 
-**🟢 PRODUCTION READY** - System fully tested and validated
+**🟢 PRODUCTION READY WITH ENHANCED DATA VIEWER** - System fully tested and validated
 - **Data Sources**: 39 connections managed via flexible registry
 - **Architecture**: Hybrid (Static + Dynamic frontend)
 - **ETL Pipeline**: Fully functional (1.48s processing time)
+- **Data Viewer**: Interactive dataset explorer deployed
+- **GitHub Pages**: Live at https://robertjstewart.github.io/RE/frontend/
 - **Deployment**: Ready for GitHub Pages + Flask server
 - **Last Test**: Complete system reset and validation successful
 
@@ -35,16 +37,25 @@ python update.py --calculation
 
 ### 3. Start Frontend
 ```bash
-# Option A: Static Frontend (GitHub Pages ready)
+# Option A: Static Frontend with Data Viewer (GitHub Pages ready)
 cd frontend
 python -m http.server 8000
 # Access: http://localhost:8000
+# Features: Interactive dataset explorer, filtering, metadata display
 
 # Option B: Dynamic Frontend (Full functionality)
 cd frontend
 python frontend_script.py
 # Access: http://localhost:5000
+# Features: Full API, connection management, discovery
 ```
+
+### 4. Access Live Data Viewer
+**🌐 Live Demo**: https://robertjstewart.github.io/RE/frontend/
+- **Interactive Dataset Explorer**: Browse and filter all 39 datasets
+- **Smart Filtering**: Filter by data source, type, and geography
+- **Comprehensive Display**: View connection methods, critical columns, metadata
+- **Statistics Dashboard**: Real-time statistics with animated cards
 
 ## 📁 Project Structure
 

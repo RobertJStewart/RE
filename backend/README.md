@@ -4,10 +4,12 @@ The backend data processing system for the RE Market Tool, handling data ingesti
 
 ## 🎯 **Current Status (2025-10-06)**
 
-**🟢 PRODUCTION READY** - Backend fully tested and validated
+**🟢 PRODUCTION READY WITH ENHANCED DATA VIEWER** - Backend fully tested and validated
 - **ETL Pipeline**: Fully functional (1.48s processing time)
 - **Data Sources**: 39 connections in flexible registry
 - **ConnectionManager**: Complete API with discovery functionality
+- **Static Generator**: Creates frontend-compatible files for data viewer
+- **Data Viewer**: Interactive dataset explorer deployed on GitHub Pages
 - **Last Test**: Complete system reset and validation successful
 
 ## 🏗️ Architecture
@@ -24,8 +26,10 @@ Data Sources → Ingestion → Aggregation → Statistics → Static Files
 - **`calculate.py`**: Statistical analysis
 - **`data_connection.py`**: Data source management
 - **`connection_manager.py`**: Flexible connection registry management
-- **`static_generator.py`**: Frontend static file generation
+- **`static_generator.py`**: Frontend static file generation for data viewer
 - **`dataconnections.json`**: Central connection registry (39 connections)
+- **`test_connection_api.py`**: Standalone API server for testing
+- **`demo_connection_api.py`**: Demonstration script for ConnectionManager
 
 ## 🚀 Quick Start
 
